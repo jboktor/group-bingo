@@ -7,60 +7,72 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+/* Spacing scale: 4 8 12 16 24. Type scale: 12 14 16 20 28. */
 :root{
-  --bg:#fff6ea; --card:#ffffff; --ink:#2b1d3a; --muted:#7a6b88; --line:#ecdcc8;
-  --pri:#ff5a5f; --pri-ink:#fff; --acc:#7c4dff; --ok:#1fb47a; --mark:#ffd84d; --warn:#b4541f;
+  --bg:#fff6ea; --card:#fffdf9; --ink:#2b1d3a; --muted:#6b5c79; --line:#ecdcc8; --edge:#9c8872;
+  --pri:#d6333a; --pri-dark:#b3262b; --pri-ink:#fffdf9; --acc:#5b2be0; --acc-soft:#efe6ff;
+  --ok:#12734d; --ok-soft:#dcf6ea; --mark:#ffd84d; --mark-edge:#8a6d00; --warn:#a3440f;
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:Fredoka,system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.4}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Fredoka,system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.5}
 main{max-width:640px;margin:0 auto;padding:16px 16px 64px}
-h1{font-size:30px;margin:8px 0 4px;letter-spacing:.5px}
+h1{font-size:28px;line-height:1.15;margin:8px 0 4px}
 h1 span{color:var(--pri)}
-h2{font-size:19px;margin:0 0 10px}
-p{margin:6px 0}
+h2{font-size:20px;line-height:1.2;margin:0 0 12px}
+p{margin:8px 0}
 .sub{color:var(--muted);font-size:14px}
-.box{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:16px;margin:14px 0}
-label{display:block;font-weight:600;font-size:14px;margin:12px 0 4px}
-input,textarea,select{width:100%;font:inherit;padding:11px 12px;border:2px solid var(--line);border-radius:12px;background:#fffdf9;color:var(--ink)}
-input:focus,textarea:focus,select:focus{outline:none;border-color:var(--acc)}
+.box{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:16px;margin:24px 0}
+label{display:block;font-weight:600;font-size:14px;margin:16px 0 4px}
+input,textarea,select{width:100%;font:inherit;padding:12px;border:2px solid var(--edge);border-radius:12px;background:var(--card);color:var(--ink)}
 textarea{min-height:88px;resize:vertical}
-button{font:inherit;font-weight:600;border:0;border-radius:12px;padding:12px 16px;cursor:pointer;background:var(--pri);color:var(--pri-ink)}
-button.alt{background:#efe6ff;color:var(--acc)}
-button.ghost{background:transparent;color:var(--muted);padding:6px 8px;font-weight:500}
-button.wide{width:100%;margin-top:14px}
-button:disabled{opacity:.5;cursor:default}
+button{font:inherit;font-weight:600;border:0;border-radius:12px;padding:12px 16px;min-height:44px;cursor:pointer;background:var(--pri);color:var(--pri-ink);
+  transition:background-color 150ms ease-out, transform 120ms ease-out}
+button:hover{background:var(--pri-dark)}
+button:active{transform:scale(.97)}
+button.alt{background:var(--acc-soft);color:var(--acc)}
+button.alt:hover{background:#e2d4ff}
+button.ghost{background:transparent;color:var(--muted);font-weight:500}
+button.ghost:hover{background:#f4ece0;color:var(--ink)}
+button.wide{width:100%;margin-top:16px}
+button:disabled{opacity:.5;cursor:default;transform:none}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
 .row{display:flex;gap:8px;align-items:center}
-.row > *{flex:1}
+.row > *{flex:1;min-width:0}
 .row > button{flex:0 0 auto}
 .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .err{color:var(--warn);font-weight:600;font-size:14px;min-height:20px;margin-top:8px}
-.banner{background:#fff0c2;border:2px solid #f2d36b;border-radius:12px;padding:8px 12px;font-size:14px;margin:8px 0}
+.note{background:#fff0c2;border:2px solid #d9b233;border-radius:12px;padding:8px 12px;font-size:14px;margin:16px 0 0}
+.banner{background:#fff0c2;border:2px solid #d9b233;border-radius:12px;padding:8px 12px;font-size:14px;margin:8px 0}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{background:#f4ece0;color:var(--ink);border-radius:999px;padding:7px 13px;font-size:14px;font-weight:500;border:2px solid transparent}
-button.chip.on{background:#ffe1e2;border-color:var(--pri);color:#b3262b}
-.chip.in{background:#dcf6ea;color:#12734d}
-.item{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
+.chip{background:#f4ece0;color:var(--ink);border-radius:999px;padding:4px 12px;font-size:14px;font-weight:500;border:2px solid transparent}
+button.chip{padding:8px 16px;border-color:var(--edge);background:var(--card)}
+button.chip:hover{background:#f4ece0}
+button.chip.on{background:#ffe1e2;border-color:var(--pri);color:var(--pri-dark)}
+.chip.in{background:var(--ok-soft);color:var(--ok)}
+.item{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--line)}
 .item:first-child{border-top:0}
 .item .t{flex:1;overflow-wrap:anywhere}
-.tag{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:2px 9px;background:#efe6ff;color:var(--acc);margin:3px 4px 0 0}
-.tag.hid{background:#ffe1e2;color:#b3262b}
-.grid{display:grid;gap:6px;grid-template-columns:repeat(var(--n),1fr)}
-.cell{aspect-ratio:1;background:#fffdf9;border:2px solid var(--line);border-radius:12px;padding:4px;display:flex;align-items:center;justify-content:center;text-align:center;
-  font-size:clamp(9px,2.6vw,13px);line-height:1.15;font-weight:500;overflow:hidden;overflow-wrap:anywhere;color:var(--ink);cursor:pointer;user-select:none}
-.cell.on{background:var(--mark);border-color:#e0b400}
-.cell.free{background:#efe6ff;border-color:#cdb8ff;color:var(--acc);font-weight:700}
-.grid.list{grid-template-columns:1fr}
-.grid.list .cell{aspect-ratio:auto;justify-content:flex-start;text-align:left;padding:12px;font-size:15px}
-.grid.mini{gap:3px}
-.grid.mini .cell{font-size:clamp(7px,2vw,11px);border-radius:8px;border-width:1px;cursor:default;padding:2px}
-.score{display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line)}
+.tag{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:2px 8px;background:var(--acc-soft);color:var(--acc);margin:4px 4px 0 0}
+.tag.hid{background:#ffe1e2;color:var(--pri-dark)}
+.grid{display:grid;gap:4px;grid-template-columns:repeat(var(--n),1fr)}
+.cell{position:relative;aspect-ratio:1;min-height:0;background:var(--card);border:2px solid var(--edge);border-radius:12px;padding:4px;display:flex;align-items:center;justify-content:center;text-align:center;
+  font-size:clamp(10px,2.6vw,14px);line-height:1.15;font-weight:500;overflow:hidden;overflow-wrap:anywhere;color:var(--ink)}
+button.cell:hover{background:#fff3c4}
+.cell.on,button.cell.on:hover{background:var(--mark);border-color:var(--mark-edge);text-decoration:line-through}
+.cell.on::after{content:"✓";position:absolute;top:0;right:4px;font-size:12px;font-weight:700;text-decoration:none}
+.cell.free{background:var(--acc-soft);border-color:var(--acc);color:var(--acc);font-weight:700}
+.grid.list{grid-template-columns:1fr;gap:8px}
+.grid.list .cell{aspect-ratio:auto;min-height:44px;justify-content:flex-start;text-align:left;padding:12px 24px 12px 12px;font-size:16px}
+.grid.mini .cell{font-size:clamp(10px,2vw,12px);border-radius:8px;border-width:1px;padding:2px}
+.score{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
 .score:first-child{border-top:0}
-.bingo{background:var(--ok);color:#fff;border-radius:999px;padding:2px 10px;font-size:13px;font-weight:700}
-.win{background:var(--ok);color:#fff;border-radius:18px;padding:16px;text-align:center;font-size:26px;font-weight:700;margin:14px 0;animation:pop .5s}
-@keyframes pop{0%{transform:scale(.6)}70%{transform:scale(1.06)}100%{transform:scale(1)}}
-.link{font-size:13px;background:#f4ece0;border-radius:10px;padding:9px 10px;overflow-wrap:anywhere}
-.reveal{text-align:center;padding:36px 16px}
-.reveal button{font-size:22px;padding:18px 26px;border-radius:18px}
+.bingo{background:var(--ok);color:var(--pri-ink);border-radius:999px;padding:2px 8px;font-size:12px;font-weight:700}
+.win{background:var(--ok);color:var(--pri-ink);border-radius:16px;padding:16px;text-align:center;font-size:28px;line-height:1.15;font-weight:700;margin:24px 0;animation:pop 200ms ease-out}
+@keyframes pop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
+.link{font-size:14px;background:#f4ece0;border-radius:12px;padding:8px 12px;overflow-wrap:anywhere}
+.reveal{text-align:center;padding:32px 16px}
+.reveal button{font-size:20px;padding:16px 24px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
@@ -167,7 +179,7 @@ async function makeFirebaseStore(cfg){
 /* ---------- App state ---------- */
 let store;
 const S = {me: null, game: null, players: [], items: [], itemsReady: false, playersReady: false,
-  screen: null, hide: new Set(), list: false, revealed: false, busy: false, creating: false, subs: [], itemsSub: null, itemsEnded: null};
+  screen: null, hide: new Set(), list: matchMedia('(max-width: 480px)').matches, revealed: false, busy: false, creating: false, subs: [], itemsSub: null, itemsEnded: null};
 
 const keyFor = id => id + '.' + G;
 const idOf = key => key.split('.')[0];
@@ -185,11 +197,12 @@ function renderHome(){
     ${demoBanner()}
     <div class="box">
       <h2>Start a new game</h2>
-      <label>Game name</label><input id="gname" maxlength="40" placeholder="Friendsgiving 2026">
-      <label>Your name (you run the game)</label><input id="hname" maxlength="24">
-      <label>Your password</label><input id="hpw" type="password" autocomplete="new-password" placeholder="At least 6 characters">
-      <label>Friends, one name per line</label><textarea id="friends" placeholder="Ellese&#10;Sam&#10;Priya"></textarea>
-      <div class="err" id="err"></div>
+      <label for="gname">Game name</label><input id="gname" maxlength="40" placeholder="Friendsgiving 2026">
+      <label for="hname">Your name (you run the game)</label><input id="hname" maxlength="24">
+      <label for="hpw">Your password</label><input id="hpw" type="password" autocomplete="new-password" aria-describedby="hpwh">
+      <p class="sub" id="hpwh">At least 6 characters.</p>
+      <label for="friends">Friends, one name per line</label><textarea id="friends" placeholder="Ellese&#10;Sam&#10;Priya"></textarea>
+      <div class="err" id="err" role="alert"></div>
       <button class="wide" id="create">Create game</button>
     </div>
     <p class="sub">Got an invite link? Open that link to join.</p>`;
@@ -219,11 +232,11 @@ function renderLogin(){
     <p class="sub">You are invited to</p><h2>${esc(S.game.name)}</h2>
     ${demoBanner()}
     <div class="box">
-      <label>Who are you?</label>
+      <label for="who">Who are you?</label>
       <select id="who"><option value="">Pick your name</option>${S.game.roster.map(r => `<option value="${r.id}">${esc(r.name)}</option>`).join('')}</select>
-      <label>Password</label><input id="pw" type="password" placeholder="At least 6 characters">
-      <p class="sub">First time? The password you type now becomes your password.</p>
-      <div class="err" id="err"></div>
+      <label for="pw">Password</label><input id="pw" type="password" aria-describedby="pwh">
+      <p class="sub" id="pwh">At least 6 characters. First time? The password you type now becomes your password.</p>
+      <div class="err" id="err" role="alert"></div>
       <button class="wide" id="go">Enter</button>
     </div>`;
   $('#go').onclick = async () => {
@@ -272,12 +285,12 @@ function buildLobby(){
   app.innerHTML = header() + `
     <div class="box"><h2>Players</h2><div class="chips" id="roster"></div>
       <div id="hostbox"></div></div>
-    <div class="box"><h2>Add a bingo square</h2>
+    <div class="box"><h2><label for="text" style="font-size:inherit;margin:0">Add a bingo square</label></h2>
       <textarea id="text" maxlength="120" placeholder="Sam will spill wine on themselves"></textarea>
-      <label>Hide it from (tap the people it is about)</label>
-      <div class="chips" id="hide"></div>
-      <p class="sub" id="hidenote"></p>
-      <div class="err" id="err"></div>
+      <label id="hidelab">Hide it from (tap the people it is about)</label>
+      <div class="chips" id="hide" role="group" aria-labelledby="hidelab"></div>
+      <p class="sub" id="hidenote" aria-live="polite"></p>
+      <div class="err" id="err" role="alert"></div>
       <button class="wide" id="add">Add square</button></div>
     <div class="box"><h2>Squares you can see</h2><p class="sub" id="count"></p><div id="items"></div></div>`;
   wireHeader();
@@ -298,12 +311,13 @@ function fillLobby(){
   $('#roster').innerHTML = S.game.roster.map(r => `<span class="chip ${joined.has(keyFor(r.id)) ? 'in' : ''}">${joined.has(keyFor(r.id)) ? '✓ ' : ''}${esc(r.name)}</span>`).join('');
   if (isHost() && !$('#start')) {
     $('#hostbox').innerHTML = `
-      <label>Invite link (send this to everybody)</label>
+      <p class="sub" style="margin-top:16px"><b>Invite link.</b> Send this to everybody.</p>
       <div class="row"><div class="link">${esc(inviteLink())}</div><button class="alt" id="copy">Copy</button></div>
-      <label>Add another friend</label>
+      <label for="newname">Add another friend</label>
       <div class="row"><input id="newname" maxlength="24"><button class="alt" id="addname">Add</button></div>
-      <label>Card size</label>
+      <label for="size">Card size</label>
       <select id="size"><option value="3">3 × 3</option><option value="4">4 × 4</option><option value="5">5 × 5</option></select>
+      <p class="note" id="ready" aria-live="polite"></p>
       <button class="wide" id="start">Start the game</button>
       <p class="sub">Starting locks the squares and deals a card to each player.</p>`;
     $('#size').value = S.game.size;
@@ -319,17 +333,22 @@ function fillLobby(){
   }
   if (!isHost()) $('#hostbox').innerHTML = '<p class="sub">Add your squares now. The game controller starts the game.</p>';
   $('#hide').innerHTML = S.game.roster.filter(r => keyFor(r.id) !== S.me).map(r => {
-    const k = keyFor(r.id); return `<button class="chip ${S.hide.has(k) ? 'on' : ''}" data-k="${k}">${S.hide.has(k) ? '🙈 ' : ''}${esc(r.name)}</button>`; }).join('');
+    const k = keyFor(r.id); return `<button type="button" class="chip ${S.hide.has(k) ? 'on' : ''}" aria-pressed="${S.hide.has(k)}" data-k="${k}">${S.hide.has(k) ? '🙈 ' : ''}${esc(r.name)}</button>`; }).join('');
   $('#hide').querySelectorAll('button').forEach(b => b.onclick = () => { S.hide.has(b.dataset.k) ? S.hide.delete(b.dataset.k) : S.hide.add(b.dataset.k); fillLobby(); });
   $('#hidenote').textContent = S.hide.size ? 'Hidden from: ' + [...S.hide].map(nameOf).join(', ') + '. Everybody else can get it.' : 'Nobody picked. Everybody can get this square.';
   const need = S.game.size * S.game.size - (S.game.size % 2);
+  if ($('#ready')) {
+    const waiting = S.game.roster.filter(r => !joined.has(keyFor(r.id))).map(r => r.name);
+    $('#ready').textContent = (waiting.length ? `Not joined yet: ${waiting.join(', ')}. ` : 'Everybody has joined. ')
+      + (S.items.length < need ? `You can see ${S.items.length} of the ${need} squares a card needs.` : 'There are enough squares.');
+  }
   $('#count').textContent = `${S.items.length} so far. A ${S.game.size} × ${S.game.size} card needs ${need}. Missing squares become free squares.`;
   $('#items').innerHTML = S.items.map(itemRow).join('') || '<p class="sub">Nothing yet.</p>';
   $('#items').querySelectorAll('[data-del]').forEach(b => b.onclick = () => store.deleteItem(G, b.dataset.del));
 }
 const itemRow = i => `<div class="item"><div class="t">${esc(i.text)}<br>
   <span class="tag">by ${esc(i.authorName)}</span>${(i.excluded || []).map(k => `<span class="tag hid">hidden from ${esc(nameOf(k))}</span>`).join('')}</div>
-  ${S.game.status === 'lobby' && i.authorKey === S.me ? `<button class="ghost" data-del="${i.id}">Delete</button>` : ''}</div>`;
+  ${S.game.status === 'lobby' && i.authorKey === S.me ? `<button type="button" class="ghost" data-del="${i.id}" aria-label="Delete: ${esc(i.text)}">Delete</button>` : ''}</div>`;
 
 /* Keep my hidden squares visible to friends added after I wrote them. */
 function heal(){
@@ -358,13 +377,16 @@ function hasBingo(card, marks, n){
     || idx.every(i => on(i * n + i)) || idx.every(i => on(i * n + n - 1 - i));
 }
 const textOf = id => id === 'FREE' ? 'FREE' : (S.items.find(i => i.id === id) || {}).text || '…';
-const cardHtml = (p, cls) => `<div class="grid ${cls}" style="--n:${S.game.size}">${p.card.map((id, i) =>
-  `<div class="cell ${id === 'FREE' ? 'free' : (p.marks || []).includes(i) ? 'on' : ''}" data-i="${i}">${esc(textOf(id))}</div>`).join('')}</div>`;
+const cardHtml = (p, cls, play) => `<div class="grid ${cls}" style="--n:${S.game.size}">${p.card.map((id, i) => {
+  const on = id !== 'FREE' && (p.marks || []).includes(i), c = `cell ${id === 'FREE' ? 'free' : on ? 'on' : ''}`;
+  return play && id !== 'FREE'
+    ? `<button type="button" class="${c}" aria-pressed="${on}" data-i="${i}">${esc(textOf(id))}</button>`
+    : `<div class="${c}" data-i="${i}">${esc(textOf(id))}${on ? '<span hidden> (happened)</span>' : ''}</div>`; }).join('')}</div>`;
 const scores = () => S.players.filter(p => p.card).map(p => `<div class="score"><span>${esc(p.name)}</span>
   <span>${(p.marks || []).length} marked ${p.bingo ? '<span class="bingo">BINGO</span>' : ''}</span></div>`).join('');
 
 function buildPlay(){
-  app.innerHTML = header() + `<div id="win"></div>
+  app.innerHTML = header() + `<div id="win" role="status"></div>
     <div class="box"><div class="top"><h2>Your card</h2><button class="ghost" id="view"></button></div>
       <p class="sub">Tap a square when it happens.</p><div id="card"></div></div>
     <div class="box"><h2>Scoreboard</h2><div id="scores"></div></div>
@@ -382,8 +404,10 @@ function fillPlay(){
   $('#scores').innerHTML = scores() || '<p class="sub">Waiting for players.</p>';
   if (!me || !me.card) { $('#card').innerHTML = '<p class="sub">Dealing your card…</p>'; return; }
   $('#win').innerHTML = me.bingo ? '<div class="win">BINGO! 🎉</div>' : '';
-  $('#card').innerHTML = cardHtml(me, S.list ? 'list' : '');
-  $('#card').querySelectorAll('.cell:not(.free)').forEach(c => c.onclick = () => {
+  const focused = document.activeElement?.closest?.('#card .cell')?.dataset.i;
+  $('#card').innerHTML = cardHtml(me, S.list ? 'list' : '', true);
+  if (focused !== undefined) $(`#card .cell[data-i="${focused}"]`)?.focus();
+  $('#card').querySelectorAll('button.cell').forEach(c => c.onclick = () => {
     const i = +c.dataset.i, marks = (me.marks || []).includes(i) ? me.marks.filter(m => m !== i) : [...(me.marks || []), i];
     store.setPlayer(G, S.me, {marks, bingo: hasBingo(me.card, marks, S.game.size)}).catch(console.error);
   });
