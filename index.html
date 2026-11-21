@@ -70,6 +70,10 @@ button.cell:hover{background:#fff3c4}
 .win{background:var(--ok);color:var(--pri-ink);border-radius:16px;padding:16px;text-align:center;font-size:28px;line-height:1.15;font-weight:700;margin:24px 0;animation:pop 200ms ease-out}
 @keyframes pop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
 .link{font-size:14px;background:#f4ece0;border-radius:12px;padding:8px 12px;overflow-wrap:anywhere}
+.steps{display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0;margin:8px 0;font-size:12px;font-weight:600}
+.steps li{padding:4px 12px;border-radius:999px;background:#f4ece0;color:var(--muted)}
+.steps li.now{background:var(--ink);color:var(--card)}
+.how{margin:8px 0;padding-left:24px;font-size:14px;color:var(--muted)}
 .reveal{text-align:center;padding:32px 16px}
 .reveal button{font-size:20px;padding:16px 24px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -110,6 +114,8 @@ function makeLocalStore(){
       else if (d.users[k] !== pw) throw new Error('wrong-password');
       setMe(k);
     },
+    async signIn(k, pw){ if (db().users[k] !== pw) throw new Error('no-match'); setMe(k); },
+    async signUp(k, pw){ const d = db(); if (d.users[k] !== undefined) throw new Error('taken'); d.users[k] = pw; save(d); setMe(k); },
     async signOut(){ setMe(null); },
     async getGame(g){ return db().games[g] || null; },
     async createGame(g, data){ const d = db(); d.games[g] = data; save(d); },
@@ -148,6 +154,14 @@ async function makeFirebaseStore(cfg){
         try { await A.signInWithEmailAndPassword(auth, k + DOMAIN, pw); }
         catch (e2) { throw new Error('wrong-password'); }
       }
+    },
+    async signIn(k, pw){
+      try { await A.signInWithEmailAndPassword(auth, k + DOMAIN, pw); }
+      catch (e) { if (/invalid-credential|wrong-password|user-not-found|invalid-login/.test(e.code || '')) throw new Error('no-match'); throw e; }
+    },
+    async signUp(k, pw){
+      try { await A.createUserWithEmailAndPassword(auth, k + DOMAIN, pw); }
+      catch (e) { if (e.code === 'auth/email-already-in-use') throw new Error('taken'); throw e; }
     },
     async signOut(){ await A.signOut(auth); },
     async getGame(g){ const s = await F.getDoc(gameRef(g)); return s.exists() ? s.data() : null; },
@@ -189,18 +203,22 @@ const myPlayer = () => S.players.find(p => p.key === S.me);
 const inviteLink = () => location.origin + location.pathname + '?g=' + G;
 const demoBanner = () => store.demo ? '<div class="banner">Demo mode. Data stays on this device only.</div>' : '';
 
+const plain = e => /network|unavailable|offline/.test((e && (e.code || e.message)) || '') ? 'No connection. Check your internet and try again.'
+  : /too-many-requests/.test((e && e.code) || '') ? 'Too many tries. Wait a minute and try again.' : 'Something went wrong. Try again.';
+const howItWorks = `<ol class="how"><li>Everybody adds funny squares.</li><li>Squares about you stay hidden from you.</li><li>Tap squares as they happen. The host reveals everything at the end.</li></ol>`;
+
 /* ---------- Home: create a game ---------- */
 function renderHome(){
   app.innerHTML = `
     <h1>Group <span>Bingo</span></h1>
-    <p class="sub">Funny predictions about your friends. Nobody sees the ones about themselves until the end.</p>
+    <p class="sub">Funny predictions about your friends.</p>${howItWorks}
     ${demoBanner()}
     <div class="box">
       <h2>Start a new game</h2>
       <label for="gname">Game name</label><input id="gname" maxlength="40" placeholder="Friendsgiving 2026">
       <label for="hname">Your name (you run the game)</label><input id="hname" maxlength="24">
       <label for="hpw">Your password</label><input id="hpw" type="password" autocomplete="new-password" aria-describedby="hpwh">
-      <p class="sub" id="hpwh">At least 6 characters.</p>
+      <p class="sub" id="hpwh">At least 6 characters. There is no password reset, so keep it simple.</p>
       <label for="friends">Friends, one name per line</label><textarea id="friends" placeholder="Ellese&#10;Sam&#10;Priya"></textarea>
       <div class="err" id="err" role="alert"></div>
       <button class="wide" id="create">Create game</button>
@@ -220,7 +238,7 @@ function renderHome(){
       await store.signUpOrIn('s0.' + g, pw);
       await store.createGame(g, {name: gname, status: 'lobby', size: 5, roster, nextSlot: roster.length, createdAt: Date.now()});
       location.href = location.pathname + '?g=' + g;
-    } catch (e) { console.error(e); S.creating = false; $('#create').disabled = false; err('Could not create the game. ' + (e.code || e.message)); }
+    } catch (e) { console.error(e); S.creating = false; $('#create').disabled = false; err('Could not create the game. ' + plain(e)); }
   };
 }
 
@@ -230,22 +248,41 @@ function renderLogin(){
   app.innerHTML = `
     <h1>Group <span>Bingo</span></h1>
     <p class="sub">You are invited to</p><h2>${esc(S.game.name)}</h2>
-    ${demoBanner()}
-    <div class="box">
+    ${demoBanner()}${howItWorks}
+    <form class="box" id="login">
       <label for="who">Who are you?</label>
       <select id="who"><option value="">Pick your name</option>${S.game.roster.map(r => `<option value="${r.id}">${esc(r.name)}</option>`).join('')}</select>
       <label for="pw">Password</label><input id="pw" type="password" aria-describedby="pwh">
-      <p class="sub" id="pwh">At least 6 characters. First time? The password you type now becomes your password.</p>
+      <p class="sub" id="pwh">At least 6 characters. First time? You choose it now. There is no password reset.</p>
       <div class="err" id="err" role="alert"></div>
+      <div id="claim"></div>
       <button class="wide" id="go">Enter</button>
-    </div>`;
-  $('#go').onclick = async () => {
-    const who = $('#who').value, pw = $('#pw').value, err = m => $('#err').textContent = m;
+    </form>`;
+  const err = m => $('#err').textContent = m;
+  const reset = () => { $('#claim').innerHTML = ''; err(''); $('#go').hidden = false; $('#go').disabled = false; };
+  $('#who').onchange = reset; $('#pw').oninput = reset;
+  $('#login').onsubmit = async ev => {
+    ev.preventDefault();
+    const who = $('#who').value, pw = $('#pw').value, name = (S.game.roster.find(r => r.id === who) || {}).name;
     if (!who) return err('Pick your name.');
     if (pw.length < 6) return err('Password needs at least 6 characters.');
     $('#go').disabled = true;
-    try { await store.signUpOrIn(keyFor(who), pw); }
-    catch (e) { $('#go').disabled = false; err(e.message === 'wrong-password' ? 'Wrong password for that name.' : 'Could not sign in. ' + (e.code || e.message)); }
+    try { await store.signIn(keyFor(who), pw); }
+    catch (e) {
+      $('#go').disabled = false;
+      if (e.message !== 'no-match') return err('Could not sign in. ' + plain(e));
+      // Either a new player or a wrong password. Ask before claiming the name.
+      err(''); $('#go').hidden = true;
+      $('#claim').innerHTML = `<div class="note" role="alert"><b>Is this your first time joining as ${esc(name)}?</b>
+        <div class="row" style="margin-top:8px"><button type="button" id="yes">Yes, join as ${esc(name)}</button><button type="button" class="alt" id="no">No, try again</button></div></div>`;
+      $('#no').onclick = () => { reset(); err(`That password does not match ${name}. Check the name and password.`); $('#pw').focus(); };
+      $('#yes').onclick = async () => {
+        $('#yes').disabled = true;
+        try { await store.signUp(keyFor(who), pw); }
+        catch (e2) { reset(); err(e2.message === 'taken' ? `${name} already joined with a different password. Check the name and password.` : 'Could not join. ' + plain(e2)); }
+      };
+      $('#yes').focus();
+    }
   };
 }
 
@@ -277,7 +314,9 @@ function refresh(){
 
 const header = () => `
   <div class="top"><h1>Group <span>Bingo</span></h1><button class="ghost" id="out">Sign out</button></div>
-  <p class="sub">${esc(S.game.name)} · you are <b>${esc(nameOf(S.me))}</b>${isHost() ? ' (game controller)' : ''}</p>${demoBanner()}`;
+  <p class="sub">${esc(S.game.name)} · you are <b>${esc(nameOf(S.me))}</b>${isHost() ? ' (game controller)' : ''}</p>
+  <ol class="steps">${[['lobby', 'Add squares'], ['playing', 'Play'], ['ended', 'Reveal']].map(([k, t], n) =>
+    `<li class="${S.game.status === k ? 'now' : ''}"${S.game.status === k ? ' aria-current="step"' : ''}>${n + 1}. ${t}</li>`).join('')}</ol>${demoBanner()}`;
 const wireHeader = () => { $('#out').onclick = () => store.signOut(); };
 
 /* ---------- Lobby ---------- */
@@ -292,8 +331,10 @@ function buildLobby(){
       <p class="sub" id="hidenote" aria-live="polite"></p>
       <div class="err" id="err" role="alert"></div>
       <button class="wide" id="add">Add square</button></div>
-    <div class="box"><h2>Squares you can see</h2><p class="sub" id="count"></p><div id="items"></div></div>`;
+    <div class="box"><h2>Squares you can see</h2><p class="sub" id="count"></p><div id="items"></div></div>
+    <div class="box" id="startbox"></div>`;
   wireHeader();
+  $('#text').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#add').click(); } };
   $('#add').onclick = async () => {
     const text = $('#text').value.trim();
     if (!text) return $('#err').textContent = 'Type something first.';
@@ -301,7 +342,7 @@ function buildLobby(){
     const data = {text, authorKey: S.me, authorName: nameOf(S.me), excluded, general: excluded.length === 0,
       visibleTo: visibleFor(excluded), createdAt: Date.now()};
     $('#text').value = ''; S.hide.clear(); $('#err').textContent = ''; fillLobby();
-    try { await store.addItem(G, data); } catch (e) { console.error(e); $('#err').textContent = 'Could not save that square.'; }
+    try { await store.addItem(G, data); } catch (e) { console.error(e); $('#err').textContent = 'Could not save that square. ' + plain(e); }
   };
 }
 const visibleFor = excluded => S.game.roster.map(r => keyFor(r.id)).filter(k => !excluded.includes(k)).sort();
@@ -312,26 +353,30 @@ function fillLobby(){
   if (isHost() && !$('#start')) {
     $('#hostbox').innerHTML = `
       <p class="sub" style="margin-top:16px"><b>Invite link.</b> Send this to everybody.</p>
-      <div class="row"><div class="link">${esc(inviteLink())}</div><button class="alt" id="copy">Copy</button></div>
+      <div class="row"><div class="link">${esc(inviteLink())}</div>${navigator.share ? '<button class="alt" id="share">Share</button>' : ''}<button class="alt" id="copy">Copy</button></div>
       <label for="newname">Add another friend</label>
-      <div class="row"><input id="newname" maxlength="24"><button class="alt" id="addname">Add</button></div>
-      <label for="size">Card size</label>
+      <div class="row"><input id="newname" maxlength="24"><button class="alt" id="addname">Add</button></div>`;
+    $('#startbox').innerHTML = `<h2>Start the game</h2>
+      <label for="size" style="margin-top:0">Card size</label>
       <select id="size"><option value="3">3 × 3</option><option value="4">4 × 4</option><option value="5">5 × 5</option></select>
       <p class="note" id="ready" aria-live="polite"></p>
       <button class="wide" id="start">Start the game</button>
       <p class="sub">Starting locks the squares and deals a card to each player.</p>`;
-    $('#size').value = S.game.size;
     $('#copy').onclick = () => navigator.clipboard?.writeText(inviteLink()).then(() => $('#copy').textContent = 'Copied');
+    if ($('#share')) $('#share').onclick = () => navigator.share({title: 'Group Bingo', text: `Join ${S.game.name}`, url: inviteLink()}).catch(() => {});
     $('#size').onchange = e => store.updateGame(G, {size: +e.target.value});
-    $('#addname').onclick = () => {
+    const addName = () => {
       const name = $('#newname').value.trim();
       if (!name || S.game.roster.some(r => r.name === name)) return;
       $('#newname').value = '';
       store.updateGame(G, {roster: [...S.game.roster, {id: 's' + S.game.nextSlot, name}], nextSlot: S.game.nextSlot + 1});
     };
+    $('#addname').onclick = addName;
+    $('#newname').onkeydown = e => { if (e.key === 'Enter') addName(); };
     $('#start').onclick = () => { if (confirm('Start the game? Nobody can add squares after this.')) store.updateGame(G, {status: 'playing'}); };
   }
-  if (!isHost()) $('#hostbox').innerHTML = '<p class="sub">Add your squares now. The game controller starts the game.</p>';
+  if ($('#size')) $('#size').value = S.game.size;
+  if (!isHost()) $('#startbox').innerHTML = '<h2>Waiting to start</h2><p class="sub">Keep adding squares. The game controller starts the game.</p>';
   $('#hide').innerHTML = S.game.roster.filter(r => keyFor(r.id) !== S.me).map(r => {
     const k = keyFor(r.id); return `<button type="button" class="chip ${S.hide.has(k) ? 'on' : ''}" aria-pressed="${S.hide.has(k)}" data-k="${k}">${S.hide.has(k) ? '🙈 ' : ''}${esc(r.name)}</button>`; }).join('');
   $('#hide').querySelectorAll('button').forEach(b => b.onclick = () => { S.hide.has(b.dataset.k) ? S.hide.delete(b.dataset.k) : S.hide.add(b.dataset.k); fillLobby(); });
@@ -339,8 +384,11 @@ function fillLobby(){
   const need = S.game.size * S.game.size - (S.game.size % 2);
   if ($('#ready')) {
     const waiting = S.game.roster.filter(r => !joined.has(keyFor(r.id))).map(r => r.name);
+    const fits = [5, 4, 3].find(n => S.items.length >= n * n - (n % 2));
     $('#ready').textContent = (waiting.length ? `Not joined yet: ${waiting.join(', ')}. ` : 'Everybody has joined. ')
-      + (S.items.length < need ? `You can see ${S.items.length} of the ${need} squares a card needs.` : 'There are enough squares.');
+      + (S.items.length >= need ? 'There are enough squares.'
+        : `You can see ${S.items.length} of the ${need} squares a ${S.game.size} × ${S.game.size} card needs. `
+          + (fits ? `There are enough for ${fits} × ${fits}.` : 'Missing squares become free squares.'));
   }
   $('#count').textContent = `${S.items.length} so far. A ${S.game.size} × ${S.game.size} card needs ${need}. Missing squares become free squares.`;
   $('#items').innerHTML = S.items.map(itemRow).join('') || '<p class="sub">Nothing yet.</p>';
@@ -437,7 +485,7 @@ function fillEnded(){
 /* ---------- Boot ---------- */
 (async () => {
   try { store = CFG ? await makeFirebaseStore(CFG) : makeLocalStore(); }
-  catch (e) { console.error(e); app.innerHTML = '<p class="err">Could not reach the game server.</p>'; return; }
+  catch (e) { console.error(e); app.innerHTML = '<p class="err" role="alert">Could not reach the game server. Check your internet and reload.</p>'; return; }
   if (!G) return renderHome();
   try { S.game = await store.getGame(G); } catch (e) { console.error(e); }
   if (!S.game) { app.innerHTML = '<h1>Group <span>Bingo</span></h1><p>This game link does not work. Ask for a new link.</p>'; return; }
