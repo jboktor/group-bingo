@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{db}/documents {
+
+    // A login looks like  s3.<gameId>@bingo.example.com  (s0 is the game controller).
+    function key() { return request.auth.token.email.split('@')[0]; }
+    function member(g) {
+      return request.auth != null
+        && request.auth.token.email.matches('s[0-9]+[.]' + g + '@bingo[.]example[.]com');
+    }
+    function host(g) { return member(g) && key() == 's0.' + g; }
+    function status(g) { return get(/databases/$(db)/documents/games/$(g)).data.status; }
+
+    match /games/{g} {
+      allow get: if true;                 // the invite page needs the list of names
+      allow create: if host(g) && request.resource.data.status == 'lobby';
+      allow update: if host(g);
+
+      match /players/{p} {
+        allow read: if member(g);
+        allow create, update: if member(g) && p == key();
+      }
+
+      match /items/{i} {
+        // You never get a square that is hidden from you, until the game ends.
+        allow read: if member(g) && (
+          status(g) == 'ended'
+          || resource.data.general == true
+          || key() in resource.data.visibleTo
+          || resource.data.authorKey == key());
+        allow create: if member(g) && status(g) == 'lobby'
+          && request.resource.data.authorKey == key();
+        allow update: if member(g) && status(g) == 'lobby'
+          && resource.data.authorKey == key() && request.resource.data.authorKey == key();
+        allow delete: if member(g) && status(g) == 'lobby' && resource.data.authorKey == key();
+      }
+    }
+  }
+}

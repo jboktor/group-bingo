@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Group Bingo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fff6ea; --card:#ffffff; --ink:#2b1d3a; --muted:#7a6b88; --line:#ecdcc8;
+  --pri:#ff5a5f; --pri-ink:#fff; --acc:#7c4dff; --ok:#1fb47a; --mark:#ffd84d; --warn:#b4541f;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Fredoka,system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.4}
+main{max-width:640px;margin:0 auto;padding:16px 16px 64px}
+h1{font-size:30px;margin:8px 0 4px;letter-spacing:.5px}
+h1 span{color:var(--pri)}
+h2{font-size:19px;margin:0 0 10px}
+p{margin:6px 0}
+.sub{color:var(--muted);font-size:14px}
+.box{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:16px;margin:14px 0}
+label{display:block;font-weight:600;font-size:14px;margin:12px 0 4px}
+input,textarea,select{width:100%;font:inherit;padding:11px 12px;border:2px solid var(--line);border-radius:12px;background:#fffdf9;color:var(--ink)}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--acc)}
+textarea{min-height:88px;resize:vertical}
+button{font:inherit;font-weight:600;border:0;border-radius:12px;padding:12px 16px;cursor:pointer;background:var(--pri);color:var(--pri-ink)}
+button.alt{background:#efe6ff;color:var(--acc)}
+button.ghost{background:transparent;color:var(--muted);padding:6px 8px;font-weight:500}
+button.wide{width:100%;margin-top:14px}
+button:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:8px;align-items:center}
+.row > *{flex:1}
+.row > button{flex:0 0 auto}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.err{color:var(--warn);font-weight:600;font-size:14px;min-height:20px;margin-top:8px}
+.banner{background:#fff0c2;border:2px solid #f2d36b;border-radius:12px;padding:8px 12px;font-size:14px;margin:8px 0}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:#f4ece0;color:var(--ink);border-radius:999px;padding:7px 13px;font-size:14px;font-weight:500;border:2px solid transparent}
+button.chip.on{background:#ffe1e2;border-color:var(--pri);color:#b3262b}
+.chip.in{background:#dcf6ea;color:#12734d}
+.item{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
+.item:first-child{border-top:0}
+.item .t{flex:1;overflow-wrap:anywhere}
+.tag{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:2px 9px;background:#efe6ff;color:var(--acc);margin:3px 4px 0 0}
+.tag.hid{background:#ffe1e2;color:#b3262b}
+.grid{display:grid;gap:6px;grid-template-columns:repeat(var(--n),1fr)}
+.cell{aspect-ratio:1;background:#fffdf9;border:2px solid var(--line);border-radius:12px;padding:4px;display:flex;align-items:center;justify-content:center;text-align:center;
+  font-size:clamp(9px,2.6vw,13px);line-height:1.15;font-weight:500;overflow:hidden;overflow-wrap:anywhere;color:var(--ink);cursor:pointer;user-select:none}
+.cell.on{background:var(--mark);border-color:#e0b400}
+.cell.free{background:#efe6ff;border-color:#cdb8ff;color:var(--acc);font-weight:700}
+.grid.list{grid-template-columns:1fr}
+.grid.list .cell{aspect-ratio:auto;justify-content:flex-start;text-align:left;padding:12px;font-size:15px}
+.grid.mini{gap:3px}
+.grid.mini .cell{font-size:clamp(7px,2vw,11px);border-radius:8px;border-width:1px;cursor:default;padding:2px}
+.score{display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line)}
+.score:first-child{border-top:0}
+.bingo{background:var(--ok);color:#fff;border-radius:999px;padding:2px 10px;font-size:13px;font-weight:700}
+.win{background:var(--ok);color:#fff;border-radius:18px;padding:16px;text-align:center;font-size:26px;font-weight:700;margin:14px 0;animation:pop .5s}
+@keyframes pop{0%{transform:scale(.6)}70%{transform:scale(1.06)}100%{transform:scale(1)}}
+.link{font-size:13px;background:#f4ece0;border-radius:10px;padding:9px 10px;overflow-wrap:anywhere}
+.reveal{text-align:center;padding:36px 16px}
+.reveal button{font-size:22px;padding:18px 26px;border-radius:18px}
+</style>
+</head>
+<body>
+<main id="app"><p class="sub">Loading…</p></main>
+
+<script src="firebase-config.js"></script>
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const app = $('#app');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const G = (new URLSearchParams(location.search).get('g') || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+const CFG = window.FIREBASE_CONFIG || null;
+const DOMAIN = '@bingo.example.com';
+
+/* ---------- Store 1: this device only (demo mode) ---------- */
+function makeLocalStore(){
+  const K = 'group-bingo-demo', AK = 'group-bingo-me';
+  const load = () => { try { return JSON.parse(localStorage.getItem(K)) || {}; } catch { return {}; } };
+  const blank = d => Object.assign({users:{}, games:{}, players:{}, items:{}}, d);
+  const watchers = new Set(), authCbs = new Set();
+  const emit = () => watchers.forEach(w => w());
+  const save = d => { localStorage.setItem(K, JSON.stringify(d)); emit(); };
+  const db = () => blank(load());
+  const me = () => sessionStorage.getItem(AK);
+  const setMe = k => { k ? sessionStorage.setItem(AK, k) : sessionStorage.removeItem(AK); authCbs.forEach(c => c(k)); };
+  addEventListener('storage', e => { if (e.key === K) emit(); });
+  const watch = fn => { const w = () => fn(db()); watchers.add(w); setTimeout(w, 0); return () => watchers.delete(w); };
+  return {
+    demo: true,
+    onAuth(cb){ authCbs.add(cb); setTimeout(() => cb(me()), 0); },
+    async signUpOrIn(k, pw){
+      const d = db();
+      if (d.users[k] === undefined) { d.users[k] = pw; save(d); }
+      else if (d.users[k] !== pw) throw new Error('wrong-password');
+      setMe(k);
+    },
+    async signOut(){ setMe(null); },
+    async getGame(g){ return db().games[g] || null; },
+    async createGame(g, data){ const d = db(); d.games[g] = data; save(d); },
+    async updateGame(g, patch){ const d = db(); Object.assign(d.games[g], patch); save(d); },
+    watchGame(g, cb){ return watch(d => cb(d.games[g] || null)); },
+    watchPlayers(g, cb){ return watch(d => cb(Object.values(d.players[g] || {}))); },
+    async setPlayer(g, k, patch){ const d = db(); d.players[g] ??= {}; d.players[g][k] = Object.assign(d.players[g][k] || {}, patch); save(d); },
+    watchItems(g, k, ended, cb){
+      return watch(d => cb(Object.entries(d.items[g] || {}).map(([id, v]) => ({id, ...v}))
+        .filter(i => ended || i.general || i.authorKey === k || (i.visibleTo || []).includes(k))));
+    },
+    async addItem(g, data){ const d = db(); d.items[g] ??= {}; d.items[g]['i' + Date.now() + Math.random().toString(36).slice(2, 6)] = data; save(d); },
+    async updateItem(g, id, patch){ const d = db(); Object.assign(d.items[g][id], patch); save(d); },
+    async deleteItem(g, id){ const d = db(); delete d.items[g][id]; save(d); },
+  };
+}
+
+/* ---------- Store 2: Firebase (shared between everybody) ---------- */
+async function makeFirebaseStore(cfg){
+  const B = 'https://www.gstatic.com/firebasejs/10.12.2/';
+  const [{initializeApp}, A, F] = await Promise.all([
+    import(B + 'firebase-app.js'), import(B + 'firebase-auth.js'), import(B + 'firebase-firestore.js')]);
+  const fb = initializeApp(cfg), auth = A.getAuth(fb), db = F.getFirestore(fb);
+  const keyOf = u => (u && u.email) ? u.email.split('@')[0] : null;
+  const gameRef = g => F.doc(db, 'games', g);
+  const players = g => F.collection(db, 'games', g, 'players');
+  const items = g => F.collection(db, 'games', g, 'items');
+  const fail = e => console.error(e);
+  return {
+    demo: false,
+    onAuth(cb){ A.onAuthStateChanged(auth, u => cb(keyOf(u))); },
+    async signUpOrIn(k, pw){
+      try { await A.createUserWithEmailAndPassword(auth, k + DOMAIN, pw); }
+      catch (e) {
+        if (e.code !== 'auth/email-already-in-use') throw e;
+        try { await A.signInWithEmailAndPassword(auth, k + DOMAIN, pw); }
+        catch (e2) { throw new Error('wrong-password'); }
+      }
+    },
+    async signOut(){ await A.signOut(auth); },
+    async getGame(g){ const s = await F.getDoc(gameRef(g)); return s.exists() ? s.data() : null; },
+    async createGame(g, data){ await F.setDoc(gameRef(g), data); },
+    async updateGame(g, patch){ await F.updateDoc(gameRef(g), patch); },
+    watchGame(g, cb){ return F.onSnapshot(gameRef(g), s => cb(s.exists() ? s.data() : null), fail); },
+    watchPlayers(g, cb){ return F.onSnapshot(players(g), s => cb(s.docs.map(d => d.data())), fail); },
+    async setPlayer(g, k, patch){ await F.setDoc(F.doc(players(g), k), patch, {merge: true}); },
+    watchItems(g, k, ended, cb){
+      // The security rules only allow these exact queries.
+      const qs = ended ? [items(g)] : [
+        F.query(items(g), F.where('general', '==', true)),
+        F.query(items(g), F.where('visibleTo', 'array-contains', k)),
+        F.query(items(g), F.where('authorKey', '==', k))];
+      const parts = qs.map(() => null);
+      const push = () => {
+        if (parts.some(p => p === null)) return;
+        const m = new Map(); parts.forEach(p => p.forEach(i => m.set(i.id, i))); cb([...m.values()]);
+      };
+      const subs = qs.map((q, n) => F.onSnapshot(q, s => { parts[n] = s.docs.map(d => ({id: d.id, ...d.data()})); push(); }, fail));
+      return () => subs.forEach(u => u());
+    },
+    async addItem(g, data){ await F.addDoc(items(g), data); },
+    async updateItem(g, id, patch){ await F.updateDoc(F.doc(items(g), id), patch); },
+    async deleteItem(g, id){ await F.deleteDoc(F.doc(items(g), id)); },
+  };
+}
+
+/* ---------- App state ---------- */
+let store;
+const S = {me: null, game: null, players: [], items: [], itemsReady: false, playersReady: false,
+  screen: null, hide: new Set(), list: false, revealed: false, busy: false, creating: false, subs: [], itemsSub: null, itemsEnded: null};
+
+const keyFor = id => id + '.' + G;
+const idOf = key => key.split('.')[0];
+const nameOf = key => (S.game?.roster.find(r => r.id === idOf(key)) || {}).name || '?';
+const isHost = () => S.me === keyFor('s0');
+const myPlayer = () => S.players.find(p => p.key === S.me);
+const inviteLink = () => location.origin + location.pathname + '?g=' + G;
+const demoBanner = () => store.demo ? '<div class="banner">Demo mode. Data stays on this device only.</div>' : '';
+
+/* ---------- Home: create a game ---------- */
+function renderHome(){
+  app.innerHTML = `
+    <h1>Group <span>Bingo</span></h1>
+    <p class="sub">Funny predictions about your friends. Nobody sees the ones about themselves until the end.</p>
+    ${demoBanner()}
+    <div class="box">
+      <h2>Start a new game</h2>
+      <label>Game name</label><input id="gname" maxlength="40" placeholder="Friendsgiving 2026">
+      <label>Your name (you run the game)</label><input id="hname" maxlength="24">
+      <label>Your password</label><input id="hpw" type="password" autocomplete="new-password" placeholder="At least 6 characters">
+      <label>Friends, one name per line</label><textarea id="friends" placeholder="Ellese&#10;Sam&#10;Priya"></textarea>
+      <div class="err" id="err"></div>
+      <button class="wide" id="create">Create game</button>
+    </div>
+    <p class="sub">Got an invite link? Open that link to join.</p>`;
+  $('#create').onclick = async () => {
+    const gname = $('#gname').value.trim(), hname = $('#hname').value.trim(), pw = $('#hpw').value;
+    const friends = [...new Set($('#friends').value.split('\n').map(s => s.trim()).filter(Boolean))].filter(n => n !== hname);
+    const err = m => $('#err').textContent = m;
+    if (!gname || !hname) return err('Add a game name and your name.');
+    if (pw.length < 6) return err('Password needs at least 6 characters.');
+    if (!friends.length) return err('Add at least one friend.');
+    $('#create').disabled = true; S.creating = true;
+    try {
+      const g = Array.from(crypto.getRandomValues(new Uint8Array(6)), b => 'abcdefghjkmnpqrstuvwxyz23456789'[b % 31]).join('');
+      const roster = [hname, ...friends].map((name, i) => ({id: 's' + i, name}));
+      await store.signUpOrIn('s0.' + g, pw);
+      await store.createGame(g, {name: gname, status: 'lobby', size: 5, roster, nextSlot: roster.length, createdAt: Date.now()});
+      location.href = location.pathname + '?g=' + g;
+    } catch (e) { console.error(e); S.creating = false; $('#create').disabled = false; err('Could not create the game. ' + (e.code || e.message)); }
+  };
+}
+
+/* ---------- Login ---------- */
+function renderLogin(){
+  S.screen = 'login';
+  app.innerHTML = `
+    <h1>Group <span>Bingo</span></h1>
+    <p class="sub">You are invited to</p><h2>${esc(S.game.name)}</h2>
+    ${demoBanner()}
+    <div class="box">
+      <label>Who are you?</label>
+      <select id="who"><option value="">Pick your name</option>${S.game.roster.map(r => `<option value="${r.id}">${esc(r.name)}</option>`).join('')}</select>
+      <label>Password</label><input id="pw" type="password" placeholder="At least 6 characters">
+      <p class="sub">First time? The password you type now becomes your password.</p>
+      <div class="err" id="err"></div>
+      <button class="wide" id="go">Enter</button>
+    </div>`;
+  $('#go').onclick = async () => {
+    const who = $('#who').value, pw = $('#pw').value, err = m => $('#err').textContent = m;
+    if (!who) return err('Pick your name.');
+    if (pw.length < 6) return err('Password needs at least 6 characters.');
+    $('#go').disabled = true;
+    try { await store.signUpOrIn(keyFor(who), pw); }
+    catch (e) { $('#go').disabled = false; err(e.message === 'wrong-password' ? 'Wrong password for that name.' : 'Could not sign in. ' + (e.code || e.message)); }
+  };
+}
+
+/* ---------- Enter the game ---------- */
+function leave(){ S.subs.forEach(u => u()); S.subs = []; if (S.itemsSub) S.itemsSub(); S.itemsSub = null; S.itemsEnded = null; S.me = null; S.screen = null; S.itemsReady = S.playersReady = false; }
+
+function enter(key){
+  leave(); S.me = key;
+  store.setPlayer(G, key, {key, name: nameOf(key)}).catch(console.error);
+  S.subs.push(store.watchGame(G, g => { if (!g) return; S.game = g; subItems(); refresh(); }));
+  S.subs.push(store.watchPlayers(G, ps => { S.players = ps; S.playersReady = true; refresh(); }));
+  subItems();
+}
+function subItems(){
+  const ended = S.game.status === 'ended';
+  if (S.itemsEnded === ended) return;
+  if (S.itemsSub) S.itemsSub();
+  S.itemsEnded = ended; S.itemsReady = false;
+  S.itemsSub = store.watchItems(G, S.me, ended, items => { S.items = items.sort((a, b) => a.createdAt - b.createdAt); S.itemsReady = true; refresh(); });
+}
+
+function refresh(){
+  if (!S.me || !S.game) return;
+  const scr = S.game.status;
+  if (scr !== S.screen) { S.screen = scr; ({lobby: buildLobby, playing: buildPlay, ended: buildEnded})[scr](); }
+  ({lobby: fillLobby, playing: fillPlay, ended: fillEnded})[scr]();
+  heal(); deal();
+}
+
+const header = () => `
+  <div class="top"><h1>Group <span>Bingo</span></h1><button class="ghost" id="out">Sign out</button></div>
+  <p class="sub">${esc(S.game.name)} · you are <b>${esc(nameOf(S.me))}</b>${isHost() ? ' (game controller)' : ''}</p>${demoBanner()}`;
+const wireHeader = () => { $('#out').onclick = () => store.signOut(); };
+
+/* ---------- Lobby ---------- */
+function buildLobby(){
+  app.innerHTML = header() + `
+    <div class="box"><h2>Players</h2><div class="chips" id="roster"></div>
+      <div id="hostbox"></div></div>
+    <div class="box"><h2>Add a bingo square</h2>
+      <textarea id="text" maxlength="120" placeholder="Sam will spill wine on themselves"></textarea>
+      <label>Hide it from (tap the people it is about)</label>
+      <div class="chips" id="hide"></div>
+      <p class="sub" id="hidenote"></p>
+      <div class="err" id="err"></div>
+      <button class="wide" id="add">Add square</button></div>
+    <div class="box"><h2>Squares you can see</h2><p class="sub" id="count"></p><div id="items"></div></div>`;
+  wireHeader();
+  $('#add').onclick = async () => {
+    const text = $('#text').value.trim();
+    if (!text) return $('#err').textContent = 'Type something first.';
+    const excluded = [...S.hide].sort();
+    const data = {text, authorKey: S.me, authorName: nameOf(S.me), excluded, general: excluded.length === 0,
+      visibleTo: visibleFor(excluded), createdAt: Date.now()};
+    $('#text').value = ''; S.hide.clear(); $('#err').textContent = ''; fillLobby();
+    try { await store.addItem(G, data); } catch (e) { console.error(e); $('#err').textContent = 'Could not save that square.'; }
+  };
+}
+const visibleFor = excluded => S.game.roster.map(r => keyFor(r.id)).filter(k => !excluded.includes(k)).sort();
+
+function fillLobby(){
+  const joined = new Set(S.players.map(p => p.key));
+  $('#roster').innerHTML = S.game.roster.map(r => `<span class="chip ${joined.has(keyFor(r.id)) ? 'in' : ''}">${joined.has(keyFor(r.id)) ? '✓ ' : ''}${esc(r.name)}</span>`).join('');
+  if (isHost() && !$('#start')) {
+    $('#hostbox').innerHTML = `
+      <label>Invite link (send this to everybody)</label>
+      <div class="row"><div class="link">${esc(inviteLink())}</div><button class="alt" id="copy">Copy</button></div>
+      <label>Add another friend</label>
+      <div class="row"><input id="newname" maxlength="24"><button class="alt" id="addname">Add</button></div>
+      <label>Card size</label>
+      <select id="size"><option value="3">3 × 3</option><option value="4">4 × 4</option><option value="5">5 × 5</option></select>
+      <button class="wide" id="start">Start the game</button>
+      <p class="sub">Starting locks the squares and deals a card to each player.</p>`;
+    $('#size').value = S.game.size;
+    $('#copy').onclick = () => navigator.clipboard?.writeText(inviteLink()).then(() => $('#copy').textContent = 'Copied');
+    $('#size').onchange = e => store.updateGame(G, {size: +e.target.value});
+    $('#addname').onclick = () => {
+      const name = $('#newname').value.trim();
+      if (!name || S.game.roster.some(r => r.name === name)) return;
+      $('#newname').value = '';
+      store.updateGame(G, {roster: [...S.game.roster, {id: 's' + S.game.nextSlot, name}], nextSlot: S.game.nextSlot + 1});
+    };
+    $('#start').onclick = () => { if (confirm('Start the game? Nobody can add squares after this.')) store.updateGame(G, {status: 'playing'}); };
+  }
+  if (!isHost()) $('#hostbox').innerHTML = '<p class="sub">Add your squares now. The game controller starts the game.</p>';
+  $('#hide').innerHTML = S.game.roster.filter(r => keyFor(r.id) !== S.me).map(r => {
+    const k = keyFor(r.id); return `<button class="chip ${S.hide.has(k) ? 'on' : ''}" data-k="${k}">${S.hide.has(k) ? '🙈 ' : ''}${esc(r.name)}</button>`; }).join('');
+  $('#hide').querySelectorAll('button').forEach(b => b.onclick = () => { S.hide.has(b.dataset.k) ? S.hide.delete(b.dataset.k) : S.hide.add(b.dataset.k); fillLobby(); });
+  $('#hidenote').textContent = S.hide.size ? 'Hidden from: ' + [...S.hide].map(nameOf).join(', ') + '. Everybody else can get it.' : 'Nobody picked. Everybody can get this square.';
+  const need = S.game.size * S.game.size - (S.game.size % 2);
+  $('#count').textContent = `${S.items.length} so far. A ${S.game.size} × ${S.game.size} card needs ${need}. Missing squares become free squares.`;
+  $('#items').innerHTML = S.items.map(itemRow).join('') || '<p class="sub">Nothing yet.</p>';
+  $('#items').querySelectorAll('[data-del]').forEach(b => b.onclick = () => store.deleteItem(G, b.dataset.del));
+}
+const itemRow = i => `<div class="item"><div class="t">${esc(i.text)}<br>
+  <span class="tag">by ${esc(i.authorName)}</span>${(i.excluded || []).map(k => `<span class="tag hid">hidden from ${esc(nameOf(k))}</span>`).join('')}</div>
+  ${S.game.status === 'lobby' && i.authorKey === S.me ? `<button class="ghost" data-del="${i.id}">Delete</button>` : ''}</div>`;
+
+/* Keep my hidden squares visible to friends added after I wrote them. */
+function heal(){
+  if (S.game.status !== 'lobby' || !S.itemsReady) return;
+  for (const i of S.items) {
+    if (i.authorKey !== S.me || i.general) continue;
+    const want = visibleFor(i.excluded);
+    if (want.join() !== (i.visibleTo || []).join()) store.updateItem(G, i.id, {visibleTo: want}).catch(console.error);
+  }
+}
+
+/* ---------- Dealing and playing ---------- */
+function deal(){
+  if (S.game.status !== 'playing' || !S.itemsReady || !S.playersReady || S.busy) return;
+  const me = myPlayer(); if (!me || me.card) return;
+  const n = S.game.size, cells = n * n, pool = S.items.map(i => i.id);
+  for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  const card = [];
+  for (let c = 0; c < cells; c++) card.push(n % 2 && c === (cells - 1) / 2 ? 'FREE' : (pool.pop() || 'FREE'));
+  S.busy = true;
+  store.setPlayer(G, S.me, {card, marks: [], bingo: false}).catch(console.error).finally(() => { S.busy = false; });
+}
+function hasBingo(card, marks, n){
+  const on = i => card[i] === 'FREE' || marks.includes(i), idx = [...Array(n).keys()];
+  return idx.some(r => idx.every(c => on(r * n + c))) || idx.some(c => idx.every(r => on(r * n + c)))
+    || idx.every(i => on(i * n + i)) || idx.every(i => on(i * n + n - 1 - i));
+}
+const textOf = id => id === 'FREE' ? 'FREE' : (S.items.find(i => i.id === id) || {}).text || '…';
+const cardHtml = (p, cls) => `<div class="grid ${cls}" style="--n:${S.game.size}">${p.card.map((id, i) =>
+  `<div class="cell ${id === 'FREE' ? 'free' : (p.marks || []).includes(i) ? 'on' : ''}" data-i="${i}">${esc(textOf(id))}</div>`).join('')}</div>`;
+const scores = () => S.players.filter(p => p.card).map(p => `<div class="score"><span>${esc(p.name)}</span>
+  <span>${(p.marks || []).length} marked ${p.bingo ? '<span class="bingo">BINGO</span>' : ''}</span></div>`).join('');
+
+function buildPlay(){
+  app.innerHTML = header() + `<div id="win"></div>
+    <div class="box"><div class="top"><h2>Your card</h2><button class="ghost" id="view"></button></div>
+      <p class="sub">Tap a square when it happens.</p><div id="card"></div></div>
+    <div class="box"><h2>Scoreboard</h2><div id="scores"></div></div>
+    <div id="hostbox"></div>`;
+  wireHeader();
+  $('#view').onclick = () => { S.list = !S.list; fillPlay(); };
+  if (isHost()) {
+    $('#hostbox').innerHTML = `<div class="box"><h2>Game controller</h2><button class="wide" id="end">End game and reveal everything</button></div>`;
+    $('#end').onclick = () => { if (confirm('End the game? Everybody sees every square and every card.')) store.updateGame(G, {status: 'ended'}); };
+  }
+}
+function fillPlay(){
+  const me = myPlayer();
+  $('#view').textContent = S.list ? 'Show as grid' : 'Show as list';
+  $('#scores').innerHTML = scores() || '<p class="sub">Waiting for players.</p>';
+  if (!me || !me.card) { $('#card').innerHTML = '<p class="sub">Dealing your card…</p>'; return; }
+  $('#win').innerHTML = me.bingo ? '<div class="win">BINGO! 🎉</div>' : '';
+  $('#card').innerHTML = cardHtml(me, S.list ? 'list' : '');
+  $('#card').querySelectorAll('.cell:not(.free)').forEach(c => c.onclick = () => {
+    const i = +c.dataset.i, marks = (me.marks || []).includes(i) ? me.marks.filter(m => m !== i) : [...(me.marks || []), i];
+    store.setPlayer(G, S.me, {marks, bingo: hasBingo(me.card, marks, S.game.size)}).catch(console.error);
+  });
+}
+
+/* ---------- The final reveal ---------- */
+function buildEnded(){
+  app.innerHTML = header() + `<div id="end"></div>`;
+  wireHeader();
+}
+function fillEnded(){
+  if (!S.revealed) {
+    $('#end').innerHTML = `<div class="box reveal"><h2>The game is over</h2><p class="sub">Ready to see what they wrote about you?</p><br><button id="rev">Reveal everything</button></div>`;
+    $('#rev').onclick = () => { S.revealed = true; fillEnded(); };
+    return;
+  }
+  if (!S.itemsReady) { $('#end').innerHTML = '<p class="sub">Loading…</p>'; return; }
+  const mine = S.items.filter(i => (i.excluded || []).includes(S.me));
+  const winners = S.players.filter(p => p.bingo).map(p => p.name);
+  $('#end').innerHTML = `
+    ${winners.length ? `<div class="win">Bingo: ${esc(winners.join(', '))} 🎉</div>` : ''}
+    <div class="box"><h2>What they hid from you</h2>${mine.map(itemRow).join('') || '<p class="sub">Nothing. You got off easy.</p>'}</div>
+    <div class="box"><h2>Every card</h2>${S.players.filter(p => p.card).map(p => `<p><b>${esc(p.name)}</b> ${p.bingo ? '<span class="bingo">BINGO</span>' : ''}</p>${cardHtml(p, 'mini')}<br>`).join('')}</div>
+    <div class="box"><h2>Every square</h2>${S.items.map(itemRow).join('')}</div>`;
+}
+
+/* ---------- Boot ---------- */
+(async () => {
+  try { store = CFG ? await makeFirebaseStore(CFG) : makeLocalStore(); }
+  catch (e) { console.error(e); app.innerHTML = '<p class="err">Could not reach the game server.</p>'; return; }
+  if (!G) return renderHome();
+  try { S.game = await store.getGame(G); } catch (e) { console.error(e); }
+  if (!S.game) { app.innerHTML = '<h1>Group <span>Bingo</span></h1><p>This game link does not work. Ask for a new link.</p>'; return; }
+  store.onAuth(key => {
+    if (S.creating) return;
+    if (key && key.endsWith('.' + G)) { if (key !== S.me) enter(key); }
+    else { leave(); renderLogin(); }
+  });
+})();
+</script>
+</body>
+</html>
