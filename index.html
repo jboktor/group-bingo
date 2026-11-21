@@ -330,14 +330,30 @@ function buildLobby(){
       <div class="chips" id="hide" role="group" aria-labelledby="hidelab"></div>
       <p class="sub" id="hidenote" aria-live="polite"></p>
       <div class="err" id="err" role="alert"></div>
+      <div id="mention"></div>
       <button class="wide" id="add">Add square</button></div>
     <div class="box"><h2>Squares you can see</h2><p class="sub" id="count"></p><div id="items"></div></div>
     <div class="box" id="startbox"></div>`;
   wireHeader();
-  $('#text').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#add').click(); } };
-  $('#add').onclick = async () => {
+  $('#text').oninput = () => { $('#mention').innerHTML = ''; };
+  $('#add').onclick = () => addSquare(false);
+  const addSquare = async sure => {
     const text = $('#text').value.trim();
     if (!text) return $('#err').textContent = 'Type something first.';
+    // A square that names somebody is usually about them. Ask before everybody gets it.
+    const named = S.game.roster.filter(r => keyFor(r.id) !== S.me && !S.hide.has(keyFor(r.id))
+      && new RegExp('(^|[^\\p{L}\\p{N}])' + r.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '($|[^\\p{L}\\p{N}])', 'iu').test(text));
+    if (named.length && !sure) {
+      const names = named.map(r => r.name).join(' and ');
+      $('#err').textContent = '';
+      $('#mention').innerHTML = `<div class="note" role="alert"><b>This square names ${esc(names)}. Hide it from ${esc(names)}?</b>
+        <div class="row" style="margin-top:8px"><button type="button" id="mhide">Yes, hide it</button><button type="button" class="alt" id="mkeep">No, show it to them</button></div></div>`;
+      $('#mhide').onclick = () => { named.forEach(r => S.hide.add(keyFor(r.id))); addSquare(true); };
+      $('#mkeep').onclick = () => addSquare(true);
+      $('#mhide').focus();
+      return;
+    }
+    $('#mention').innerHTML = '';
     const excluded = [...S.hide].sort();
     const data = {text, authorKey: S.me, authorName: nameOf(S.me), excluded, general: excluded.length === 0,
       visibleTo: visibleFor(excluded), createdAt: Date.now()};
