@@ -3,79 +3,156 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#F6EFE2">
 <title>Group Bingo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-/* Spacing scale: 4 8 12 16 24. Type scale: 12 14 16 20 28. */
+/* Look: a paper bingo card and an ink dauber. Ink outlines, flat party colors, hard "sticker" shadows.
+   Spacing scale: 4 8 12 16 24 32. Type scale: 12 14 16 20 28 (40 for the win banner). */
 :root{
-  --bg:#fff6ea; --card:#fffdf9; --ink:#2b1d3a; --muted:#6b5c79; --line:#ecdcc8; --edge:#9c8872;
-  --pri:#d6333a; --pri-dark:#b3262b; --pri-ink:#fffdf9; --acc:#5b2be0; --acc-soft:#efe6ff;
-  --ok:#12734d; --ok-soft:#dcf6ea; --mark:#ffd84d; --mark-edge:#8a6d00; --warn:#a3440f;
+  --paper:#F6EFE2; --card:#FFFDF8; --field:#FBF6EC; --ink:#1C1A2E; --soft:#5B5870; --line:#DDD2BF; --warn:#A1260B;
+  --tomato:#FF6B4A; --sun:#FFC93C; --mint:#5FE0A8; --sky:#6CCBF5; --lilac:#BBA4FF; --pink:#FF9DBB;
+  --body:Figtree,system-ui,-apple-system,sans-serif; --display:"Bricolage Grotesque",Figtree,system-ui,sans-serif;
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:Fredoka,system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.5}
-main{max-width:640px;margin:0 auto;padding:16px 16px 64px}
-h1{font-size:28px;line-height:1.15;margin:8px 0 4px}
-h1 span{color:var(--pri)}
-h2{font-size:20px;line-height:1.2;margin:0 0 12px}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5}
+main{max-width:560px;margin:0 auto;padding:16px 16px 64px}
+h1{font:800 28px/1.1 var(--display);letter-spacing:-.01em;margin:16px 0 4px;overflow-wrap:anywhere}
+h1.hero{margin:24px 0 16px}
+h2{font:800 20px/1.2 var(--display);margin:0 0 12px}
+h2 label{font:inherit;margin:0}
 p{margin:8px 0}
-.sub{color:var(--muted);font-size:14px}
-.box{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:16px;margin:24px 0}
-label{display:block;font-weight:600;font-size:14px;margin:16px 0 4px}
-input,textarea,select{width:100%;font:inherit;padding:12px;border:2px solid var(--edge);border-radius:12px;background:var(--card);color:var(--ink)}
-textarea{min-height:88px;resize:vertical}
-button{font:inherit;font-weight:600;border:0;border-radius:12px;padding:12px 16px;min-height:44px;cursor:pointer;background:var(--pri);color:var(--pri-ink);
-  transition:background-color 150ms ease-out, transform 120ms ease-out}
-button:hover{background:var(--pri-dark)}
-button:active{transform:scale(.97)}
-button.alt{background:var(--acc-soft);color:var(--acc)}
-button.alt:hover{background:#e2d4ff}
-button.ghost{background:transparent;color:var(--muted);font-weight:500}
-button.ghost:hover{background:#f4ece0;color:var(--ink)}
-button.wide{width:100%;margin-top:16px}
-button:disabled{opacity:.5;cursor:default;transform:none}
-:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.sub{color:var(--soft);font-size:14px}
+.center{text-align:center}
+.lead{font-size:20px;line-height:1.3;font-weight:500;margin:16px 0}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);margin:24px 0 0}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+
+/* Logo: five bingo tiles */
+.logo{display:inline-flex;flex-direction:column;gap:4px;font-family:var(--display);font-weight:800}
+.logo small{font-size:12px;letter-spacing:.3em;text-transform:uppercase}
+.tiles{display:flex;gap:4px}
+.tiles i{font-style:normal;display:grid;place-items:center;width:32px;height:32px;font-size:20px;line-height:1;background:var(--c);border:2px solid var(--ink);border-radius:8px}
+.tiles i:nth-child(odd){transform:rotate(-4deg)}
+.tiles i:nth-child(even){transform:rotate(3deg)}
+.logo.big small{font-size:14px}
+.logo.big .tiles{gap:8px}
+.logo.big .tiles i{width:56px;height:56px;font-size:32px;border-radius:12px;box-shadow:0 4px 0 var(--ink)}
+.logo.sm small{display:none}
+.logo.sm .tiles i{width:24px;height:24px;font-size:14px;border-radius:6px}
+
+/* Surfaces */
+.card{background:var(--card);border:2px solid var(--ink);border-radius:20px;padding:16px;margin:24px 0;box-shadow:0 4px 0 var(--ink)}
+.card.tint{background:var(--sky)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.me{display:flex;align-items:center;gap:4px}
 .row{display:flex;gap:8px;align-items:center}
 .row > *{flex:1;min-width:0}
 .row > button{flex:0 0 auto}
-.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.err{color:var(--warn);font-weight:600;font-size:14px;min-height:20px;margin-top:8px}
-.note{background:#fff0c2;border:2px solid #d9b233;border-radius:12px;padding:8px 12px;font-size:14px;margin:16px 0 0}
-.banner{background:#fff0c2;border:2px solid #d9b233;border-radius:12px;padding:8px 12px;font-size:14px;margin:8px 0}
+.row.even > button{flex:1}
+
+/* Forms */
+label,.lab{display:block;font-weight:700;font-size:14px;margin:16px 0 4px}
+input,textarea,select{width:100%;font:inherit;padding:12px;border:2px solid var(--ink);border-radius:12px;background:var(--field);color:var(--ink)}
+textarea{min-height:88px;resize:vertical}
+::placeholder{color:var(--soft);opacity:.8}
+.err{color:var(--warn);font-weight:700;font-size:14px;min-height:20px;margin-top:8px}
+.note,.banner{background:#FFF1C7;border:2px solid var(--ink);border-radius:12px;padding:12px;font-size:14px;margin:16px 0 0}
+.banner{margin:16px 0}
+
+/* Buttons */
+button{font:700 16px/1.2 var(--body);border:2px solid var(--ink);border-radius:14px;padding:12px 16px;min-height:48px;cursor:pointer;background:var(--sun);color:var(--ink);box-shadow:0 4px 0 var(--ink);
+  transition:transform 120ms ease-out, box-shadow 120ms ease-out, background-color 150ms ease-out}
+button:hover{background:#FFD866}
+button:active{transform:translateY(4px);box-shadow:0 0 0 var(--ink)}
+button.alt{background:var(--card)}
+button.alt:hover{background:var(--paper)}
+button.hot{background:var(--tomato)}
+button.hot:hover{background:#FF8266}
+button.ghost{background:transparent;border-color:transparent;box-shadow:none;color:var(--soft);font-weight:600;font-size:14px;min-height:44px;padding:8px 12px}
+button.ghost:hover{background:var(--line);color:var(--ink)}
+button.ghost:active{transform:none}
+button.wide{width:100%;margin-top:16px}
+button:disabled{opacity:.5;cursor:default;transform:none}
+:focus-visible{outline:3px solid #5B3FE0;outline-offset:2px}
+
+/* People */
+.av{display:inline-grid;place-items:center;flex:none;width:32px;height:32px;border-radius:50%;background:var(--c);border:2px solid var(--ink);font:800 14px/1 var(--display);color:var(--ink)}
+.av.xs{width:20px;height:20px;font-size:10px;border-width:1.5px}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{background:#f4ece0;color:var(--ink);border-radius:999px;padding:4px 12px;font-size:14px;font-weight:500;border:2px solid transparent}
-button.chip{padding:8px 16px;border-color:var(--edge);background:var(--card)}
-button.chip:hover{background:#f4ece0}
-button.chip.on{background:#ffe1e2;border-color:var(--pri);color:var(--pri-dark)}
-.chip.in{background:var(--ok-soft);color:var(--ok)}
-.item{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--line)}
-.item:first-child{border-top:0}
-.item .t{flex:1;overflow-wrap:anywhere}
-.tag{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:2px 8px;background:var(--acc-soft);color:var(--acc);margin:4px 4px 0 0}
-.tag.hid{background:#ffe1e2;color:var(--pri-dark)}
+button.pick{display:inline-flex;align-items:center;gap:8px;padding:4px 16px 4px 4px;min-height:44px;border-radius:999px;background:var(--card);font-weight:600;box-shadow:0 2px 0 var(--ink)}
+button.pick:hover{background:var(--paper)}
+button.pick:active{transform:translateY(2px);box-shadow:0 0 0 var(--ink)}
+button.pick.on,button.pick.on:hover{background:var(--sun)}
+button.pick.hide.on,button.pick.hide.on:hover{background:var(--tomato)}
+.person{display:inline-flex;align-items:center;gap:8px;padding:4px 12px 4px 4px;border-radius:999px;background:var(--paper);font-weight:600;font-size:14px}
+.person:not(.in){color:var(--soft)}
+.person:not(.in) .av{border-style:dashed;background:transparent;color:var(--soft)}
+.tick{color:#0B6B43}
+
+/* Progress through the game */
+.steps{display:flex;gap:8px;list-style:none;padding:0;margin:16px 0 0;font-size:12px;font-weight:700;color:var(--soft)}
+.steps li{flex:1;padding-top:8px;border-top:6px solid var(--line)}
+.steps li.done{border-color:var(--mint)}
+.steps li.now{border-color:var(--ink);color:var(--ink)}
+.how{list-style:none;padding:0;margin:16px 0;counter-reset:how;display:grid;gap:12px}
+.how li{counter-increment:how;display:grid;grid-template-columns:32px 1fr;gap:12px;align-items:center;font-size:14px}
+.how li::before{content:counter(how);display:grid;place-items:center;width:32px;height:32px;border-radius:50%;border:2px solid var(--ink);font:800 14px/1 var(--display);background:var(--sun)}
+.how li:nth-child(2)::before{background:var(--pink)}
+.how li:nth-child(3)::before{background:var(--mint)}
+
+/* The pile of squares */
+.bar{height:12px;border:2px solid var(--ink);border-radius:999px;background:var(--paper);overflow:hidden;margin:8px 0 4px}
+.bar i{display:block;height:100%;background:var(--mint);transition:width 200ms ease-out}
+.slip{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:2px dashed var(--line)}
+.slip:first-child{border-top:0}
+.slip .t{flex:1;min-width:0;overflow-wrap:anywhere}
+.slip p{margin:0 0 4px;font-weight:500}
+.meta{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-size:12px;font-weight:600;color:var(--soft)}
+.tag{background:#FFE1D8;color:var(--warn);border-radius:999px;padding:2px 8px}
+.link{font-size:14px;font-weight:600;background:var(--card);border:2px dashed var(--ink);border-radius:12px;padding:8px 12px;overflow-wrap:anywhere;margin:8px 0 12px}
+
+/* The bingo card */
+.board{background:var(--tomato);border:2px solid var(--ink);border-radius:20px;padding:8px;box-shadow:0 4px 0 var(--ink);margin:12px 0 24px}
+.letters{display:grid;grid-template-columns:repeat(5,1fr);text-align:center;font:800 28px/1 var(--display);padding:4px 0 8px}
 .grid{display:grid;gap:4px;grid-template-columns:repeat(var(--n),1fr)}
-.cell{position:relative;aspect-ratio:1;min-height:0;background:var(--card);border:2px solid var(--edge);border-radius:12px;padding:4px;display:flex;align-items:center;justify-content:center;text-align:center;
-  font-size:clamp(10px,2.6vw,14px);line-height:1.15;font-weight:500;overflow:hidden;overflow-wrap:anywhere;color:var(--ink)}
-button.cell:hover{background:#fff3c4}
-.cell.on,button.cell.on:hover{background:var(--mark);border-color:var(--mark-edge);text-decoration:line-through}
-.cell.on::after{content:"✓";position:absolute;top:0;right:4px;font-size:12px;font-weight:700;text-decoration:none}
-.cell.free{background:var(--acc-soft);border-color:var(--acc);color:var(--acc);font-weight:700}
-.grid.list{grid-template-columns:1fr;gap:8px}
-.grid.list .cell{aspect-ratio:auto;min-height:44px;justify-content:flex-start;text-align:left;padding:12px 24px 12px 12px;font-size:16px}
-.grid.mini .cell{font-size:clamp(10px,2vw,12px);border-radius:8px;border-width:1px;padding:2px}
-.score{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+.cell{position:relative;isolation:isolate;aspect-ratio:1;min-width:0;min-height:0;background:var(--card);border:2px solid var(--ink);border-radius:10px;padding:4px;box-shadow:none;
+  display:flex;align-items:center;justify-content:center;text-align:center;font:600 clamp(10px,2.7vw,14px)/1.15 var(--body);overflow:hidden;overflow-wrap:anywhere;color:var(--ink)}
+@media (hover:hover){button.cell:hover{background:#FFF3CC}}
+button.cell:active{transform:scale(.96);box-shadow:none}
+.cell span{position:relative;z-index:1}
+.cell.on::before{content:"";position:absolute;inset:4%;border-radius:50%;background:var(--lilac);z-index:0}
+.cell.on.pop::before{animation:stamp 180ms ease-out}
+@keyframes stamp{from{transform:scale(1.5);opacity:0}to{transform:none;opacity:1}}
+.cell.free,.cell.free:hover{background:var(--sun);font:800 clamp(10px,2.7vw,14px)/1.1 var(--display)}
+.board.list .grid{grid-template-columns:1fr}
+.board.list .cell{aspect-ratio:auto;min-height:48px;justify-content:flex-start;text-align:left;padding:12px 12px 12px 52px;font-size:16px}
+.board.list .cell::before{content:"";position:absolute;inset:auto;left:12px;top:50%;width:28px;height:28px;transform:translateY(-50%);border:2px solid var(--ink);border-radius:50%;background:var(--card);z-index:0;animation:none}
+.board.list .cell.on::before{background:var(--lilac)}
+.board.list .cell.on::after{content:"✓";position:absolute;left:12px;top:50%;width:28px;transform:translateY(-50%);text-align:center;font-weight:800;font-size:14px;line-height:1;z-index:1}
+.board.list .cell.free{padding-left:12px}
+.board.list .cell.free::before{display:none}
+.board.mini{padding:4px;border-radius:12px;box-shadow:none;margin:8px 0 24px}
+.board.mini .letters{display:none}
+.board.mini .cell{font-size:clamp(10px,2vw,12px);border-width:1px;border-radius:6px;padding:2px}
+
+/* Scores and wins */
+.score{display:flex;align-items:center;gap:12px;padding:8px 0;border-top:2px dashed var(--line)}
 .score:first-child{border-top:0}
-.bingo{background:var(--ok);color:var(--pri-ink);border-radius:999px;padding:2px 8px;font-size:12px;font-weight:700}
-.win{background:var(--ok);color:var(--pri-ink);border-radius:16px;padding:16px;text-align:center;font-size:28px;line-height:1.15;font-weight:700;margin:24px 0;animation:pop 200ms ease-out}
+.score .n{flex:1;min-width:0;font-weight:600;overflow-wrap:anywhere}
+.pts{font:800 20px/1 var(--display);font-variant-numeric:tabular-nums}
+.pts small{font:600 12px/1 var(--body);color:var(--soft)}
+.bingo{background:var(--mint);border:2px solid var(--ink);border-radius:999px;padding:2px 8px;font:800 12px/1.2 var(--display)}
+.win{background:var(--mint);border:2px solid var(--ink);border-radius:20px;box-shadow:0 4px 0 var(--ink);padding:16px;text-align:center;font:800 40px/1 var(--display);margin:24px 0;animation:pop 200ms ease-out}
+.win small{display:block;font:600 14px/1.4 var(--body);margin-top:8px}
 @keyframes pop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
-.link{font-size:14px;background:#f4ece0;border-radius:12px;padding:8px 12px;overflow-wrap:anywhere}
-.steps{display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0;margin:8px 0;font-size:12px;font-weight:600}
-.steps li{padding:4px 12px;border-radius:999px;background:#f4ece0;color:var(--muted)}
-.steps li.now{background:var(--ink);color:var(--card)}
-.how{margin:8px 0;padding-left:24px;font-size:14px;color:var(--muted)}
 .reveal{text-align:center;padding:32px 16px}
-.reveal button{font-size:20px;padding:16px 24px}
+.reveal .big{font-size:56px;line-height:1;margin-bottom:8px}
+.who{display:flex;align-items:center;gap:8px;font-weight:700;margin:16px 0 0}
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:10}
+.confetti i{position:absolute;top:-16px;width:10px;height:14px;border-radius:2px;border:1px solid var(--ink);animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(var(--r))}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -122,6 +199,7 @@ function makeLocalStore(){
     async updateGame(g, patch){ const d = db(); Object.assign(d.games[g], patch); save(d); },
     watchGame(g, cb){ return watch(d => cb(d.games[g] || null)); },
     watchPlayers(g, cb){ return watch(d => cb(Object.values(d.players[g] || {}))); },
+    async getPlayer(g, k){ return (db().players[g] || {})[k] || null; },
     async setPlayer(g, k, patch){ const d = db(); d.players[g] ??= {}; d.players[g][k] = Object.assign(d.players[g][k] || {}, patch); save(d); },
     watchItems(g, k, ended, cb){
       return watch(d => cb(Object.entries(d.items[g] || {}).map(([id, v]) => ({id, ...v}))
@@ -167,7 +245,8 @@ async function makeFirebaseStore(cfg){
     async getGame(g){ const s = await F.getDoc(gameRef(g)); return s.exists() ? s.data() : null; },
     async createGame(g, data){ await F.setDoc(gameRef(g), data); },
     async updateGame(g, patch){ await F.updateDoc(gameRef(g), patch); },
-    watchGame(g, cb){ return F.onSnapshot(gameRef(g), s => cb(s.exists() ? s.data() : null), fail); },
+    watchGame(g, cb){ return F.onSnapshot(gameRef(g), {includeMetadataChanges: true}, s => { if (!s.metadata.hasPendingWrites) cb(s.exists() ? s.data() : null); }, fail); },
+    async getPlayer(g, k){ const s = await F.getDocFromServer(F.doc(players(g), k)); return s.exists() ? s.data() : null; },
     watchPlayers(g, cb){ return F.onSnapshot(players(g), s => cb(s.docs.map(d => d.data())), fail); },
     async setPlayer(g, k, patch){ await F.setDoc(F.doc(players(g), k), patch, {merge: true}); },
     watchItems(g, k, ended, cb){
@@ -181,8 +260,11 @@ async function makeFirebaseStore(cfg){
         if (parts.some(p => p === null)) return;
         const m = new Map(); parts.forEach(p => p.forEach(i => m.set(i.id, i))); cb([...m.values()]);
       };
-      const subs = qs.map((q, n) => F.onSnapshot(q, s => { parts[n] = s.docs.map(d => ({id: d.id, ...d.data()})); push(); }, fail));
-      return () => subs.forEach(u => u());
+      let dead = false, tries = 0; const subs = [];
+      const listen = n => { subs[n] = F.onSnapshot(qs[n], s => { parts[n] = s.docs.map(d => ({id: d.id, ...d.data()})); push(); },
+        e => { fail(e); if (!dead && tries++ < 5) setTimeout(() => { if (!dead) listen(n); }, 1000 * tries); }); };
+      qs.forEach((q, n) => listen(n));
+      return () => { dead = true; subs.forEach(u => u && u()); };
     },
     async addItem(g, data){ await F.addDoc(items(g), data); },
     async updateItem(g, id, patch){ await F.updateDoc(F.doc(items(g), id), patch); },
@@ -205,25 +287,46 @@ const demoBanner = () => store.demo ? '<div class="banner">Demo mode. Data stays
 
 const plain = e => /network|unavailable|offline/.test((e && (e.code || e.message)) || '') ? 'No connection. Check your internet and try again.'
   : /too-many-requests/.test((e && e.code) || '') ? 'Too many tries. Wait a minute and try again.' : 'Something went wrong. Try again.';
-const howItWorks = `<ol class="how"><li>Everybody adds funny squares.</li><li>Squares about you stay hidden from you.</li><li>Tap squares as they happen. The host reveals everything at the end.</li></ol>`;
+
+/* ---------- Shared pieces ---------- */
+const COLORS = ['tomato', 'sun', 'mint', 'sky', 'lilac', 'pink'];
+const colorOf = id => COLORS[(+String(id).slice(1) || 0) % COLORS.length];
+const av = (id, name, cls = '') => `<span class="av ${cls}" style="--c:var(--${colorOf(id)})" aria-hidden="true">${esc(((name || '?').trim()[0] || '?').toUpperCase())}</span>`;
+const avKey = (key, cls) => av(idOf(key), nameOf(key), cls);
+const logo = (cls = '') => `<span class="logo ${cls}" role="img" aria-label="Group Bingo"><small>Group</small><span class="tiles">${
+  [...'BINGO'].map((ch, i) => `<i style="--c:var(--${COLORS[i]})">${ch}</i>`).join('')}</span></span>`;
+const howItWorks = `<ol class="how">
+  <li><span><b>Write squares.</b> Funny guesses about what will happen.</span></li>
+  <li><span><b>Hide them.</b> Squares about you stay hidden from you.</span></li>
+  <li><span><b>Play.</b> Tap squares as they happen. Everything comes out at the end.</span></li></ol>`;
+function confetti(){
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const box = document.createElement('div'); box.className = 'confetti'; box.setAttribute('aria-hidden', 'true');
+  for (let i = 0; i < 40; i++) {
+    const p = document.createElement('i');
+    p.style.cssText = `left:${Math.random() * 100}%;background:var(--${COLORS[i % 6]});animation-delay:${Math.random() * 300}ms;animation-duration:${1200 + Math.random() * 900}ms;--r:${Math.random() * 720 - 360}deg`;
+    box.append(p);
+  }
+  document.body.append(box); setTimeout(() => box.remove(), 2600);
+}
 
 /* ---------- Home: create a game ---------- */
 function renderHome(){
   app.innerHTML = `
-    <h1>Group <span>Bingo</span></h1>
-    <p class="sub">Funny predictions about your friends.</p>${howItWorks}
-    ${demoBanner()}
-    <div class="box">
-      <h2>Start a new game</h2>
-      <label for="gname">Game name</label><input id="gname" maxlength="40" placeholder="Friendsgiving 2026">
-      <label for="hname">Your name (you run the game)</label><input id="hname" maxlength="24">
-      <label for="hpw">Your password</label><input id="hpw" type="password" autocomplete="new-password" aria-describedby="hpwh">
-      <p class="sub" id="hpwh">At least 6 characters. There is no password reset, so keep it simple.</p>
-      <label for="friends">Friends, one name per line</label><textarea id="friends" placeholder="Ellese&#10;Sam&#10;Priya"></textarea>
+    <h1 class="hero">${logo('big')}</h1>
+    <p class="lead">Bet on what your friends will do tonight. They cannot see the squares about them.</p>
+    ${demoBanner()}${howItWorks}
+    <div class="card">
+      <h2>Start a game</h2>
+      <label for="gname" style="margin-top:0">Name your game</label><input id="gname" maxlength="40" placeholder="Friendsgiving 2026">
+      <label for="hname">Your name</label><input id="hname" maxlength="24">
+      <label for="hpw">Pick a password</label><input id="hpw" type="password" autocomplete="new-password" aria-describedby="hpwh">
+      <p class="sub" id="hpwh">At least 6 characters. There is no reset, so keep it simple.</p>
+      <label for="friends">Who is playing? One name per line</label><textarea id="friends" placeholder="Ellese&#10;Sam&#10;Priya"></textarea>
       <div class="err" id="err" role="alert"></div>
       <button class="wide" id="create">Create game</button>
     </div>
-    <p class="sub">Got an invite link? Open that link to join.</p>`;
+    <p class="sub center">Got an invite link? Open it to join.</p>`;
   $('#create').onclick = async () => {
     const gname = $('#gname').value.trim(), hname = $('#hname').value.trim(), pw = $('#hpw').value;
     const friends = [...new Set($('#friends').value.split('\n').map(s => s.trim()).filter(Boolean))].filter(n => n !== hname);
@@ -245,26 +348,34 @@ function renderHome(){
 /* ---------- Login ---------- */
 function renderLogin(){
   S.screen = 'login';
+  let who = '';
   app.innerHTML = `
-    <h1>Group <span>Bingo</span></h1>
-    <p class="sub">You are invited to</p><h2>${esc(S.game.name)}</h2>
+    ${logo()}
+    <p class="eyebrow">You are invited to</p><h1>${esc(S.game.name)}</h1>
     ${demoBanner()}${howItWorks}
-    <form class="box" id="login">
-      <label for="who">Who are you?</label>
-      <select id="who"><option value="">Pick your name</option>${S.game.roster.map(r => `<option value="${r.id}">${esc(r.name)}</option>`).join('')}</select>
+    <form class="card" id="login">
+      <h2 id="wholab">Who are you?</h2>
+      <div class="chips" id="who" role="group" aria-labelledby="wholab">${S.game.roster.map(r =>
+        `<button type="button" class="pick" aria-pressed="false" data-id="${r.id}">${av(r.id, r.name)}${esc(r.name)}</button>`).join('')}</div>
       <label for="pw">Password</label><input id="pw" type="password" aria-describedby="pwh">
-      <p class="sub" id="pwh">At least 6 characters. First time? You choose it now. There is no password reset.</p>
+      <p class="sub" id="pwh">At least 6 characters. First time? You choose it now. There is no reset.</p>
       <div class="err" id="err" role="alert"></div>
       <div id="claim"></div>
-      <button class="wide" id="go">Enter</button>
+      <button class="wide" id="go">Let me in</button>
     </form>`;
   const err = m => $('#err').textContent = m;
   const reset = () => { $('#claim').innerHTML = ''; err(''); $('#go').hidden = false; $('#go').disabled = false; };
-  $('#who').onchange = reset; $('#pw').oninput = reset;
+  const picks = [...$('#who').querySelectorAll('button')];
+  picks.forEach(b => b.onclick = () => {
+    who = b.dataset.id;
+    picks.forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', x === b); });
+    reset(); $('#pw').focus();
+  });
+  $('#pw').oninput = reset;
   $('#login').onsubmit = async ev => {
     ev.preventDefault();
-    const who = $('#who').value, pw = $('#pw').value, name = (S.game.roster.find(r => r.id === who) || {}).name;
-    if (!who) return err('Pick your name.');
+    const pw = $('#pw').value, name = (S.game.roster.find(r => r.id === who) || {}).name;
+    if (!who) return err('Tap your name first.');
     if (pw.length < 6) return err('Password needs at least 6 characters.');
     $('#go').disabled = true;
     try { await store.signIn(keyFor(who), pw); }
@@ -274,7 +385,7 @@ function renderLogin(){
       // Either a new player or a wrong password. Ask before claiming the name.
       err(''); $('#go').hidden = true;
       $('#claim').innerHTML = `<div class="note" role="alert"><b>Is this your first time joining as ${esc(name)}?</b>
-        <div class="row" style="margin-top:8px"><button type="button" id="yes">Yes, join as ${esc(name)}</button><button type="button" class="alt" id="no">No, try again</button></div></div>`;
+        <div class="row even" style="margin-top:12px"><button type="button" id="yes">Yes, I am ${esc(name)}</button><button type="button" class="alt" id="no">No, try again</button></div></div>`;
       $('#no').onclick = () => { reset(); err(`That password does not match ${name}. Check the name and password.`); $('#pw').focus(); };
       $('#yes').onclick = async () => {
         $('#yes').disabled = true;
@@ -312,28 +423,32 @@ function refresh(){
   heal(); deal();
 }
 
-const header = () => `
-  <div class="top"><h1>Group <span>Bingo</span></h1><button class="ghost" id="out">Sign out</button></div>
-  <p class="sub">${esc(S.game.name)} · you are <b>${esc(nameOf(S.me))}</b>${isHost() ? ' (game controller)' : ''}</p>
-  <ol class="steps">${[['lobby', 'Add squares'], ['playing', 'Play'], ['ended', 'Reveal']].map(([k, t], n) =>
-    `<li class="${S.game.status === k ? 'now' : ''}"${S.game.status === k ? ' aria-current="step"' : ''}>${n + 1}. ${t}</li>`).join('')}</ol>${demoBanner()}`;
+const header = () => {
+  const at = ['lobby', 'playing', 'ended'].indexOf(S.game.status);
+  return `
+  <div class="top">${logo('sm')}<div class="me">${avKey(S.me)}<button class="ghost" id="out">Sign out</button></div></div>
+  <h1>${esc(S.game.name)}</h1>
+  <p class="sub">Playing as <b>${esc(nameOf(S.me))}</b>${isHost() ? ' · game controller' : ''}</p>
+  <ol class="steps">${['Add squares', 'Play', 'Reveal'].map((t, n) =>
+    `<li class="${n < at ? 'done' : n === at ? 'now' : ''}"${n === at ? ' aria-current="step"' : ''}>${t}</li>`).join('')}</ol>${demoBanner()}`;
+};
 const wireHeader = () => { $('#out').onclick = () => store.signOut(); };
 
 /* ---------- Lobby ---------- */
 function buildLobby(){
   app.innerHTML = header() + `
-    <div class="box"><h2>Players</h2><div class="chips" id="roster"></div>
-      <div id="hostbox"></div></div>
-    <div class="box"><h2><label for="text" style="font-size:inherit;margin:0">Add a bingo square</label></h2>
-      <textarea id="text" maxlength="120" placeholder="Sam will spill wine on themselves"></textarea>
-      <label id="hidelab">Hide it from (tap the people it is about)</label>
+    <div id="hostbox"></div>
+    <div class="card"><h2><label for="text">Add a square</label></h2>
+      <textarea id="text" maxlength="120" placeholder="Sam spills wine on themselves"></textarea>
+      <p class="lab" id="hidelab">Who is it about? Tap to hide it from them.</p>
       <div class="chips" id="hide" role="group" aria-labelledby="hidelab"></div>
       <p class="sub" id="hidenote" aria-live="polite"></p>
       <div class="err" id="err" role="alert"></div>
       <div id="mention"></div>
-      <button class="wide" id="add">Add square</button></div>
-    <div class="box"><h2>Squares you can see</h2><p class="sub" id="count"></p><div id="items"></div></div>
-    <div class="box" id="startbox"></div>`;
+      <button class="wide" id="add">Add to the pile</button></div>
+    <div class="card"><h2>The pile</h2><p class="sub" id="count"></p><div class="bar" aria-hidden="true"><i id="bar"></i></div><div id="items"></div></div>
+    <div class="card"><h2>Who is in</h2><div class="chips" id="roster"></div><div id="addfriend"></div></div>
+    <div class="card" id="startbox"></div>`;
   wireHeader();
   $('#text').oninput = () => { $('#mention').innerHTML = ''; };
   $('#add').onclick = () => addSquare(false);
@@ -347,7 +462,7 @@ function buildLobby(){
       const names = named.map(r => r.name).join(' and ');
       $('#err').textContent = '';
       $('#mention').innerHTML = `<div class="note" role="alert"><b>This square names ${esc(names)}. Hide it from ${esc(names)}?</b>
-        <div class="row" style="margin-top:8px"><button type="button" id="mhide">Yes, hide it</button><button type="button" class="alt" id="mkeep">No, show it to them</button></div></div>`;
+        <div class="row even" style="margin-top:12px"><button type="button" class="hot" id="mhide">Yes, hide it</button><button type="button" class="alt" id="mkeep">No, show them</button></div></div>`;
       $('#mhide').onclick = () => { named.forEach(r => S.hide.add(keyFor(r.id))); addSquare(true); };
       $('#mkeep').onclick = () => addSquare(true);
       $('#mhide').focus();
@@ -365,19 +480,21 @@ const visibleFor = excluded => S.game.roster.map(r => keyFor(r.id)).filter(k => 
 
 function fillLobby(){
   const joined = new Set(S.players.map(p => p.key));
-  $('#roster').innerHTML = S.game.roster.map(r => `<span class="chip ${joined.has(keyFor(r.id)) ? 'in' : ''}">${joined.has(keyFor(r.id)) ? '✓ ' : ''}${esc(r.name)}</span>`).join('');
+  $('#roster').innerHTML = S.game.roster.map(r => { const isIn = joined.has(keyFor(r.id));
+    return `<span class="person ${isIn ? 'in' : ''}">${av(r.id, r.name)}${esc(r.name)}${isIn ? '<b class="tick" aria-hidden="true">✓</b>' : ''}<span class="vh">${isIn ? 'joined' : 'not joined yet'}</span></span>`; }).join('');
   if (isHost() && !$('#start')) {
-    $('#hostbox').innerHTML = `
-      <p class="sub" style="margin-top:16px"><b>Invite link.</b> Send this to everybody.</p>
-      <div class="row"><div class="link">${esc(inviteLink())}</div>${navigator.share ? '<button class="alt" id="share">Share</button>' : ''}<button class="alt" id="copy">Copy</button></div>
-      <label for="newname">Add another friend</label>
-      <div class="row"><input id="newname" maxlength="24"><button class="alt" id="addname">Add</button></div>`;
+    $('#hostbox').innerHTML = `<div class="card tint"><h2>Invite your friends</h2>
+      <p style="margin:0">Send this link to everybody.</p>
+      <div class="link">${esc(inviteLink())}</div>
+      <div class="row even">${navigator.share ? '<button id="share">Share link</button>' : ''}<button class="alt" id="copy">Copy link</button></div></div>`;
+    $('#addfriend').innerHTML = `<label for="newname">Forgot somebody?</label>
+      <div class="row"><input id="newname" maxlength="24" placeholder="Their name"><button class="alt" id="addname">Add</button></div>`;
     $('#startbox').innerHTML = `<h2>Start the game</h2>
       <label for="size" style="margin-top:0">Card size</label>
       <select id="size"><option value="3">3 × 3</option><option value="4">4 × 4</option><option value="5">5 × 5</option></select>
       <p class="note" id="ready" aria-live="polite"></p>
-      <button class="wide" id="start">Start the game</button>
-      <p class="sub">Starting locks the squares and deals a card to each player.</p>`;
+      <button class="wide hot" id="start">Start the game</button>
+      <p class="sub center">Starting locks the pile and deals everybody a card.</p>`;
     $('#copy').onclick = () => navigator.clipboard?.writeText(inviteLink()).then(() => $('#copy').textContent = 'Copied');
     if ($('#share')) $('#share').onclick = () => navigator.share({title: 'Group Bingo', text: `Join ${S.game.name}`, url: inviteLink()}).catch(() => {});
     $('#size').onchange = e => store.updateGame(G, {size: +e.target.value});
@@ -392,11 +509,12 @@ function fillLobby(){
     $('#start').onclick = () => { if (confirm('Start the game? Nobody can add squares after this.')) store.updateGame(G, {status: 'playing'}); };
   }
   if ($('#size')) $('#size').value = S.game.size;
-  if (!isHost()) $('#startbox').innerHTML = '<h2>Waiting to start</h2><p class="sub">Keep adding squares. The game controller starts the game.</p>';
+  if (!isHost()) $('#startbox').innerHTML = `<h2>Waiting for ${esc(nameOf(keyFor('s0')))}</h2><p class="sub">Keep adding squares. ${esc(nameOf(keyFor('s0')))} starts the game.</p>`;
   $('#hide').innerHTML = S.game.roster.filter(r => keyFor(r.id) !== S.me).map(r => {
-    const k = keyFor(r.id); return `<button type="button" class="chip ${S.hide.has(k) ? 'on' : ''}" aria-pressed="${S.hide.has(k)}" data-k="${k}">${S.hide.has(k) ? '🙈 ' : ''}${esc(r.name)}</button>`; }).join('');
+    const k = keyFor(r.id), on = S.hide.has(k);
+    return `<button type="button" class="pick hide ${on ? 'on' : ''}" aria-pressed="${on}" data-k="${k}">${on ? '<span class="av" style="--c:var(--card)" aria-hidden="true">🙈</span>' : av(r.id, r.name)}${esc(r.name)}</button>`; }).join('');
   $('#hide').querySelectorAll('button').forEach(b => b.onclick = () => { S.hide.has(b.dataset.k) ? S.hide.delete(b.dataset.k) : S.hide.add(b.dataset.k); fillLobby(); });
-  $('#hidenote').textContent = S.hide.size ? 'Hidden from: ' + [...S.hide].map(nameOf).join(', ') + '. Everybody else can get it.' : 'Nobody picked. Everybody can get this square.';
+  $('#hidenote').textContent = S.hide.size ? 'Hidden from ' + [...S.hide].map(nameOf).join(' and ') + '. Everybody else can get it.' : 'Nobody picked, so everybody can get it.';
   const need = S.game.size * S.game.size - (S.game.size % 2);
   if ($('#ready')) {
     const waiting = S.game.roster.filter(r => !joined.has(keyFor(r.id))).map(r => r.name);
@@ -406,12 +524,15 @@ function fillLobby(){
         : `You can see ${S.items.length} of the ${need} squares a ${S.game.size} × ${S.game.size} card needs. `
           + (fits ? `There are enough for ${fits} × ${fits}.` : 'Missing squares become free squares.'));
   }
-  $('#count').textContent = `${S.items.length} so far. A ${S.game.size} × ${S.game.size} card needs ${need}. Missing squares become free squares.`;
-  $('#items').innerHTML = S.items.map(itemRow).join('') || '<p class="sub">Nothing yet.</p>';
+  $('#count').textContent = S.items.length >= need
+    ? `You can see ${S.items.length} squares. That is enough for a ${S.game.size} × ${S.game.size} card.`
+    : `You can see ${S.items.length} of the ${need} squares a ${S.game.size} × ${S.game.size} card needs.`;
+  $('#bar').style.width = Math.min(100, S.items.length / need * 100) + '%';
+  $('#items').innerHTML = S.items.map(itemRow).join('') || '<p class="sub">Nothing yet. Add the first one.</p>';
   $('#items').querySelectorAll('[data-del]').forEach(b => b.onclick = () => store.deleteItem(G, b.dataset.del));
 }
-const itemRow = i => `<div class="item"><div class="t">${esc(i.text)}<br>
-  <span class="tag">by ${esc(i.authorName)}</span>${(i.excluded || []).map(k => `<span class="tag hid">hidden from ${esc(nameOf(k))}</span>`).join('')}</div>
+const itemRow = i => `<div class="slip"><div class="t"><p>${esc(i.text)}</p>
+  <div class="meta">${avKey(i.authorKey, 'xs')}<span>${esc(i.authorName)}</span>${(i.excluded || []).map(k => `<span class="tag">🙈 hidden from ${esc(nameOf(k))}</span>`).join('')}</div></div>
   ${S.game.status === 'lobby' && i.authorKey === S.me ? `<button type="button" class="ghost" data-del="${i.id}" aria-label="Delete: ${esc(i.text)}">Delete</button>` : ''}</div>`;
 
 /* Keep my hidden squares visible to friends added after I wrote them. */
@@ -433,32 +554,39 @@ function deal(){
   const card = [];
   for (let c = 0; c < cells; c++) card.push(n % 2 && c === (cells - 1) / 2 ? 'FREE' : (pool.pop() || 'FREE'));
   S.busy = true;
-  store.setPlayer(G, S.me, {card, marks: [], bingo: false}).catch(console.error).finally(() => { S.busy = false; });
+  store.getPlayer(G, S.me).then(saved => saved && saved.card ? null : store.setPlayer(G, S.me, {card, marks: [], bingo: false}))
+    .catch(console.error).finally(() => { S.busy = false; });
 }
 function hasBingo(card, marks, n){
   const on = i => card[i] === 'FREE' || marks.includes(i), idx = [...Array(n).keys()];
   return idx.some(r => idx.every(c => on(r * n + c))) || idx.some(c => idx.every(r => on(r * n + c)))
     || idx.every(i => on(i * n + i)) || idx.every(i => on(i * n + n - 1 - i));
 }
-const textOf = id => id === 'FREE' ? 'FREE' : (S.items.find(i => i.id === id) || {}).text || '…';
-const cardHtml = (p, cls, play) => `<div class="grid ${cls}" style="--n:${S.game.size}">${p.card.map((id, i) => {
-  const on = id !== 'FREE' && (p.marks || []).includes(i), c = `cell ${id === 'FREE' ? 'free' : on ? 'on' : ''}`;
-  return play && id !== 'FREE'
-    ? `<button type="button" class="${c}" aria-pressed="${on}" data-i="${i}">${esc(textOf(id))}</button>`
-    : `<div class="${c}" data-i="${i}">${esc(textOf(id))}${on ? '<span hidden> (happened)</span>' : ''}</div>`; }).join('')}</div>`;
-const scores = () => S.players.filter(p => p.card).map(p => `<div class="score"><span>${esc(p.name)}</span>
-  <span>${(p.marks || []).length} marked ${p.bingo ? '<span class="bingo">BINGO</span>' : ''}</span></div>`).join('');
+const textOf = id => (S.items.find(i => i.id === id) || {}).text || '…';
+const cardHtml = (p, cls, play) => `<div class="board ${cls}">${
+  S.game.size === 5 && cls === '' ? `<div class="letters" aria-hidden="true">${[...'BINGO'].map(c => `<b>${c}</b>`).join('')}</div>` : ''}
+  <div class="grid" style="--n:${S.game.size}">${p.card.map((id, i) => {
+    if (id === 'FREE') return `<div class="cell free" data-i="${i}"><span>★ FREE</span></div>`;
+    const on = (p.marks || []).includes(i), c = `cell${on ? ' on' : ''}${on && play && S.pop === i ? ' pop' : ''}`;
+    return play
+      ? `<button type="button" class="${c}" aria-pressed="${on}" data-i="${i}"><span>${esc(textOf(id))}</span></button>`
+      : `<div class="${c}" data-i="${i}"><span>${esc(textOf(id))}${on ? '<span class="vh"> (happened)</span>' : ''}</span></div>`; }).join('')}</div></div>`;
+const scores = () => S.players.filter(p => p.card).sort((a, b) => (b.marks || []).length - (a.marks || []).length).map(p => `<div class="score">
+  ${avKey(p.key)}<span class="n">${esc(p.name)}</span>${p.bingo ? '<span class="bingo">BINGO</span>' : ''}
+  <span class="pts">${(p.marks || []).length} <small>tapped</small></span></div>`).join('');
 
 function buildPlay(){
   app.innerHTML = header() + `<div id="win" role="status"></div>
-    <div class="box"><div class="top"><h2>Your card</h2><button class="ghost" id="view"></button></div>
-      <p class="sub">Tap a square when it happens.</p><div id="card"></div></div>
-    <div class="box"><h2>Scoreboard</h2><div id="scores"></div></div>
+    <div class="top" style="margin-top:24px"><h2 style="margin:0">Your card</h2><button class="ghost" id="view"></button></div>
+    <p class="sub" style="margin-top:0">Tap a square when it happens.</p>
+    <div id="card"></div>
+    <div class="card"><h2>Scoreboard</h2><div id="scores"></div></div>
     <div id="hostbox"></div>`;
   wireHeader();
   $('#view').onclick = () => { S.list = !S.list; fillPlay(); };
   if (isHost()) {
-    $('#hostbox').innerHTML = `<div class="box"><h2>Game controller</h2><button class="wide" id="end">End game and reveal everything</button></div>`;
+    $('#hostbox').innerHTML = `<div class="card"><h2>End the game</h2><p class="sub">When the night is over, end the game. Everybody then sees every square and every card.</p>
+      <button class="wide hot" id="end">End game and reveal</button></div>`;
     $('#end').onclick = () => { if (confirm('End the game? Everybody sees every square and every card.')) store.updateGame(G, {status: 'ended'}); };
   }
 }
@@ -467,12 +595,16 @@ function fillPlay(){
   $('#view').textContent = S.list ? 'Show as grid' : 'Show as list';
   $('#scores').innerHTML = scores() || '<p class="sub">Waiting for players.</p>';
   if (!me || !me.card) { $('#card').innerHTML = '<p class="sub">Dealing your card…</p>'; return; }
-  $('#win').innerHTML = me.bingo ? '<div class="win">BINGO! 🎉</div>' : '';
+  $('#win').innerHTML = me.bingo ? '<div class="win">BINGO!<small>You got a line. Keep tapping.</small></div>' : '';
+  if (me.bingo && !S.hadBingo) confetti();
+  S.hadBingo = !!me.bingo;
   const focused = document.activeElement?.closest?.('#card .cell')?.dataset.i;
   $('#card').innerHTML = cardHtml(me, S.list ? 'list' : '', true);
+  S.pop = null;
   if (focused !== undefined) $(`#card .cell[data-i="${focused}"]`)?.focus();
   $('#card').querySelectorAll('button.cell').forEach(c => c.onclick = () => {
-    const i = +c.dataset.i, marks = (me.marks || []).includes(i) ? me.marks.filter(m => m !== i) : [...(me.marks || []), i];
+    const i = +c.dataset.i, was = (me.marks || []).includes(i), marks = was ? me.marks.filter(m => m !== i) : [...(me.marks || []), i];
+    S.pop = was ? null : i;
     store.setPlayer(G, S.me, {marks, bingo: hasBingo(me.card, marks, S.game.size)}).catch(console.error);
   });
 }
@@ -484,18 +616,19 @@ function buildEnded(){
 }
 function fillEnded(){
   if (!S.revealed) {
-    $('#end').innerHTML = `<div class="box reveal"><h2>The game is over</h2><p class="sub">Ready to see what they wrote about you?</p><br><button id="rev">Reveal everything</button></div>`;
-    $('#rev').onclick = () => { S.revealed = true; fillEnded(); };
+    $('#end').innerHTML = `<div class="card reveal"><div class="big" aria-hidden="true">🙈</div><h2>The game is over</h2>
+      <p>Ready to see what they wrote about you?</p><button class="hot wide" id="rev">Reveal everything</button></div>`;
+    $('#rev').onclick = () => { S.revealed = true; confetti(); fillEnded(); };
     return;
   }
   if (!S.itemsReady) { $('#end').innerHTML = '<p class="sub">Loading…</p>'; return; }
   const mine = S.items.filter(i => (i.excluded || []).includes(S.me));
   const winners = S.players.filter(p => p.bingo).map(p => p.name);
   $('#end').innerHTML = `
-    ${winners.length ? `<div class="win">Bingo: ${esc(winners.join(', '))} 🎉</div>` : ''}
-    <div class="box"><h2>What they hid from you</h2>${mine.map(itemRow).join('') || '<p class="sub">Nothing. You got off easy.</p>'}</div>
-    <div class="box"><h2>Every card</h2>${S.players.filter(p => p.card).map(p => `<p><b>${esc(p.name)}</b> ${p.bingo ? '<span class="bingo">BINGO</span>' : ''}</p>${cardHtml(p, 'mini')}<br>`).join('')}</div>
-    <div class="box"><h2>Every square</h2>${S.items.map(itemRow).join('')}</div>`;
+    ${winners.length ? `<div class="win">BINGO!<small>${esc(winners.join(', '))} got a line.</small></div>` : ''}
+    <div class="card"><h2>What they hid from you</h2>${mine.map(itemRow).join('') || '<p class="sub">Nothing. You got off easy.</p>'}</div>
+    <div class="card"><h2>Every card</h2>${S.players.filter(p => p.card).map(p => `<div class="who">${avKey(p.key)}<span>${esc(p.name)}</span>${p.bingo ? '<span class="bingo">BINGO</span>' : ''}</div>${cardHtml(p, 'mini')}`).join('')}</div>
+    <div class="card"><h2>Every square</h2>${S.items.map(itemRow).join('')}</div>`;
 }
 
 /* ---------- Boot ---------- */
@@ -504,7 +637,7 @@ function fillEnded(){
   catch (e) { console.error(e); app.innerHTML = '<p class="err" role="alert">Could not reach the game server. Check your internet and reload.</p>'; return; }
   if (!G) return renderHome();
   try { S.game = await store.getGame(G); } catch (e) { console.error(e); }
-  if (!S.game) { app.innerHTML = '<h1>Group <span>Bingo</span></h1><p>This game link does not work. Ask for a new link.</p>'; return; }
+  if (!S.game) { app.innerHTML = logo() + '<h1>This link does not work</h1><p>Ask your friend for a new invite link.</p>'; return; }
   store.onAuth(key => {
     if (S.creating) return;
     if (key && key.endsWith('.' + G)) { if (key !== S.me) enter(key); }
